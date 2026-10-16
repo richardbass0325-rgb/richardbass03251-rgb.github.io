@@ -27,6 +27,7 @@ body:fullscreen #canvas-container,#game-container:fullscreen #canvas-container{w
 #crosshair{position:absolute;top:50%;left:50%;width:4px;height:4px;background:rgba(0,255,102,0.8);transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;box-shadow:0 0 6px rgba(0,255,102,0.8);z-index:6}
 #interaction-msg{position:absolute;top:58%;left:50%;transform:translate(-50%,-50%);font-size:13px;letter-spacing:1px;font-weight:bold;color:#fff;background:rgba(0,0,0,0.8);padding:8px 16px;border:1px solid rgba(0,255,102,0.4);border-radius:4px;pointer-events:none;opacity:0;transition:opacity 0.15s ease;z-index:6;text-shadow:0 0 4px #000}
 .full-screen-menu{position:absolute;inset:0;background:#040406;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:20;padding:20px;text-align:center}
+#pause-screen{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;align-items:center;gap:14px;padding:20px;text-align:center;background:radial-gradient(ellipse at center,rgba(25,8,8,.96),rgba(0,0,0,.98) 72%);z-index:35;backdrop-filter:blur(5px)}#pause-screen .pause-title{font-size:clamp(32px,6vw,58px);font-weight:900;letter-spacing:7px;color:#eee;text-shadow:0 0 10px #900,0 0 28px #400;margin-bottom:8px}#pause-screen .pause-sub{font-size:11px;letter-spacing:3px;color:#a88;margin-bottom:14px}#pause-screen .btn{min-width:240px} 
 .btn{background:#b30000;color:#fff;border:1px solid #ff3333;padding:14px 36px;font-size:13px;letter-spacing:2px;font-family:inherit;font-weight:bold;cursor:pointer;border-radius:4px;transition:all 0.2s ease;text-transform:uppercase}
 .btn:hover{background:#e60000;box-shadow:0 0 20px rgba(230,0,0,0.7);transform:translateY(-1px)}
 #terminal-ui{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:680px;max-width:94vw;background:#020a03;border:3px solid #00ff66;border-radius:8px;color:#00ff66;padding:20px;display:none;z-index:15;box-shadow:0 0 30px rgba(0,255,102,0.3)}
@@ -345,7 +346,7 @@ body.touch-device .controls-grid{grid-template-columns:1fr 1fr}
   <div id="ui-overlay">
     <div class="hud-panel">
       <div class="hud-title">BLACKWOOD SANATORIUM - FLOOR B3</div>
-      <div id="objective">OBJECTIVE: Recover 3 fuses. Find 3 notes. Insert fuses at the FUSE BOX. Enter the code at the TERMINAL. Pull the ELEVATOR LEVER.</div>
+      <div id="objective">OBJECTIVE: Recover 6 fuses. Find 5 code notes. Insert fuses at the FUSE BOX. Enter the code at the TERMINAL. Pull the ELEVATOR LEVER.</div>
     </div>
     <div class="hud-panel">
       <div class="meter-container">
@@ -377,7 +378,7 @@ body.touch-device .controls-grid{grid-template-columns:1fr 1fr}
       <div class="title-sub">BLACKWOOD SANATORIUM · SUBLEVEL B3 · 02:13 AM</div>
       <div class="menu-box">
         <div class="story-label">CASE FILE 009 — LAST KNOWN ENTRY</div>
-        <div class="story-text">Your brother Daniel vanished inside Blackwood Sanatorium. You came back for him. The main elevator is dead. The Warden — Silas Crane — is loose below the hospital. The treatment left almost nothing human behind. <strong>Insert 3 fuses into the fuse box. Enter the code at the security terminal. Then pull the emergency lever.</strong> Keep quiet. He follows sound. And he opens doors.</div>
+        <div class="story-text">Your brother Daniel vanished inside Blackwood Sanatorium. You came back for him. The main elevator is dead. The Warden — Silas Crane — is loose below the hospital. The treatment left almost nothing human behind. <strong>Insert 6 fuses into the fuse box. Find all 5 code digits and enter the code at the security terminal. Then pull the emergency lever.</strong> Keep quiet. He follows sound. And he opens doors.</div>
         <div class="title-warning"><span class="warning-icon">▲</span> DO NOT RUN UNLESS YOU ARE READY TO BE HEARD <span class="warning-icon">▲</span></div>
         <div class="controls-grid">
           <div><span>[W A S D]</span> MOVE</div>
@@ -430,13 +431,23 @@ body.touch-device .controls-grid{grid-template-columns:1fr 1fr}
           <div style="font-size:11px;color:#88cc99;margin-bottom:4px;">ELEVATOR SHAFT 01 CODE:</div>
           <div id="term-hint" style="font-size:11px;color:#ffcc00;margin-bottom:4px;">DIGITS: ? ? ?</div>
           <div class="code-input-group">
-            <input type="text" id="term-input" maxlength="3" placeholder="000" autocomplete="off">
+            <input type="text" id="term-input" maxlength="5" placeholder="00000" autocomplete="off">
           </div>
           <button class="terminal-btn" onclick="submitTerminalCode()">ENTER CODE</button>
           <button class="terminal-btn" style="background:transparent;color:#888;border:1px solid #444;" onclick="closeTerminal()">EXIT TERMINAL</button>
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- IN-GAME PAUSE MENU -->
+  <div id="pause-screen" role="dialog" aria-modal="true" aria-label="Paused">
+    <div class="pause-title">PAUSED</div>
+    <div class="pause-sub">THE WARDEN IS STILL OUT THERE</div>
+    <button class="btn" onclick="togglePause(false)">RESUME GAME</button>
+    <button class="btn title-settings-btn" onclick="openPauseSettings()">SETTINGS</button>
+    <button class="btn title-settings-btn" onclick="returnToMainMenu()">RETURN TO MAIN MENU</button>
+    <div class="pause-sub">PRESS [P] TO RESUME</div>
   </div>
 
   <!-- SETTINGS -->
@@ -531,11 +542,12 @@ var STAND_HEIGHT = 1.65, CROUCH_HEIGHT = 0.85;
 var velocity = new THREE.Vector3(), direction = new THREE.Vector3();
 var prevTime = performance.now();
 var settings = { sens: 1, vol: 1, fov: 75, bright: 1.25, invertY: false };
+var settingsReturnToPause = false;
 var quality = 2, userQuality = false, fpsAcc = 0, fpsFrames = 0, warmFrames = 0;
 var master, isPaused = false, lastGrowl = 0;
 function OUT(){ return master || audioCtx.destination; }
 var turnL = false, turnR = false, lookU = false, lookD = false;
-var codeDigits = ["?", "?", "?"], secretCode = '419', stepTimer = 0, lastCrank = 0;
+var codeDigits = ["?", "?", "?", "?", "?"], secretCode = '41927', stepTimer = 0, lastCrank = 0;
 
 var interactables = [], doors = [], windows = [];
 var windowShards = [], glassNoiseTimer = 0, glassNoisePos = new THREE.Vector3();
@@ -836,6 +848,8 @@ function initScene(){
     grain.style.backgroundPosition = '0 0,' + Math.random() * 128 + 'px ' + Math.random() * 128 + 'px';
   }, 70);
 
+  chooseMonsterSpawn();
+  initGhost();
   spawnAnimatedMonster();
   setupSecurityCameras();
   setupControls();
@@ -912,10 +926,8 @@ function buildWall(horiz, fixed, from, to, ops, floorBase){
     P(cur, o.at - 1.3, 0, WALL_H);
     if (o.type === 'door') {
       P(o.at - 1.3, o.at + 1.3, 3.0, WALL_H);
-      if (floorBase === 0) {
-        if (horiz) createDoor(o.at, fixed, 0);
-        else createDoor(fixed, o.at, Math.PI / 2);
-      }
+      if (horiz) createDoor(o.at, fixed, 0, floorBase);
+      else createDoor(fixed, o.at, Math.PI / 2, floorBase);
     } else {
       var wx = horiz ? o.at : fixed, wz = horiz ? fixed : o.at;
       var windowRecord = { type: 'window', position: new THREE.Vector3(wx, floorBase, wz), normal: horiz ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(1, 0, 0), broken: false, glassMesh: null, floorY: floorBase };
@@ -971,14 +983,20 @@ function buildLevelMap(){
   // Enlarged lower wing plus a limited upper archive loft, connected by climbable stairs.
   floor.scale.set(1.35,1,1.35);
   var ct = makeTex('#22242a', true); ct.repeat.set(25, 25);
-  var upperFloor = new THREE.Mesh(new THREE.PlaneGeometry(24,24),new THREE.MeshStandardMaterial({map:floorTex,roughness:.92}));
-  upperFloor.rotation.x=-Math.PI/2; upperFloor.position.set(15,7.2,-15); upperFloor.receiveShadow=true; scene.add(upperFloor);
+  // Loft floor: a U-shaped plate with the stairwell notch (x 12.5..17.5, z -15..-3) cut out so the
+  // stairs rise through it instead of the floor slicing across the treads.
+  var loftTex=floorTex.clone(); loftTex.needsUpdate=true; loftTex.repeat.set(.5,.5);
+  var loftShape=new THREE.Shape();
+  [[3,3],[12.5,3],[12.5,15],[17.5,15],[17.5,3],[27,3],[27,27],[3,27]].forEach(function(pt,i){ if(i===0) loftShape.moveTo(pt[0],pt[1]); else loftShape.lineTo(pt[0],pt[1]); });
+  loftShape.lineTo(3,3);
+  var upperFloor=new THREE.Mesh(new THREE.ShapeGeometry(loftShape),new THREE.MeshStandardMaterial({map:loftTex,roughness:.92,side:THREE.DoubleSide}));
+  upperFloor.rotation.x=-Math.PI/2; upperFloor.position.y=7.2; upperFloor.receiveShadow=true; scene.add(upperFloor);
   // Enclose the second-floor archive with real wall colliders. The stairway rises into the room,
   // so the entrance stays clear and no staircase is placed across a doorway.
   var upperWallMat=wallMat(24,3.6);
   // Second-floor perimeter. These colliders belong to the upper floor only.
   buildWall(true,-27,3,27,[],7.2);
-  buildWall(true,-3,3,12.7,[],7.2); buildWall(true,-3,17.3,27,[],7.2);
+  buildWall(true,-3,3,12.0,[],7.2); buildWall(true,-3,18.0,27,[],7.2);
   buildWall(false,3,-27,-3,[],7.2); buildWall(false,27,-27,-3,[],7.2);
   // Several decayed archive rooms. Their broken-window openings can be vaulted through.
   // Leave the stair shaft clear through this partition; the left/right windows are vaultable.
@@ -987,6 +1005,14 @@ function buildLevelMap(){
   buildWall(true,-20,3,27,[{at:8,type:'window'},{at:22,type:'window'}],7.2);
   // Keep the central stair landing open while splitting the left and right rooms.
   buildWall(false,15,-27,-17,[{at:-22,type:'window'}],7.2);
+  // Expand the upstairs archive into additional connected, decayed rooms.
+  // Window openings are interactive and vaultable, just like the existing upstairs windows.
+  buildWall(true,-5,3,12.2,[{at:8,type:'door'},{at:10.8,type:'window'}],7.2);
+  buildWall(true,-5,17.8,27,[{at:22,type:'door'}],7.2);
+  buildWall(false,7,-27,-10,[{at:-23,type:'door'},{at:-15,type:'window'}],7.2);
+  buildWall(false,23,-27,-10,[{at:-23,type:'window'},{at:-15,type:'door'}],7.2);
+  buildWall(false,10,-20,-10,[{at:-15,type:'window'}],7.2);
+  buildWall(false,20,-20,-10,[{at:-15,type:'window'}],7.2);
   // Do not hang a partition over the stair run itself; the landing stays open.
   // A dark ceiling and weak, flickering lamps make the upstairs rooms feel enclosed.
   var upperCeiling=new THREE.Mesh(new THREE.PlaneGeometry(24,24),new THREE.MeshStandardMaterial({map:ct,roughness:1,side:THREE.DoubleSide}));
@@ -1006,25 +1032,58 @@ function buildLevelMap(){
     var sz=2.5-si*1.0, sy=.2+si*.4;
     var tread=new THREE.Mesh(new THREE.BoxGeometry(3.7,.22,1.12),stairMat);
     tread.position.set(15,sy,sz);tread.castShadow=tread.receiveShadow=true;scene.add(tread);
+    var riser=new THREE.Mesh(new THREE.BoxGeometry(3.7,.4,.1),stairMat);
+    riser.position.set(15,sy-.09,sz+.5);scene.add(riser);
     if(si%3===1){var stain=new THREE.Mesh(new THREE.BoxGeometry(.035,.012,.65),rustMat);stain.position.set(14.15,sy+.12,sz-.08);stain.rotation.y=(si%2?.18:-.18);scene.add(stain);}
     if(si%4===2){var nail=new THREE.Mesh(new THREE.BoxGeometry(.08,.035,.08),railMat);nail.position.set(13.6,sy+.13,sz+.25);scene.add(nail);}
   }
+  // Thin sloped handrails + balusters that follow the treads (slope = 7.2 rise over 18 run).
+  var stairSlope=Math.atan2(7.2,18), stairLen=Math.sqrt(18*18+7.2*7.2);
   for(var side=-1;side<=1;side+=2){
-    var handrail=new THREE.Mesh(new THREE.BoxGeometry(.14,7.5,20),railMat);
-    handrail.position.set(15+side*2.05,3.8,-6);handrail.rotation.x=-.36;scene.add(handrail);
-    // Thin rusted balusters make the railing feel old and unsafe.
-    for(var bi=0;bi<10;bi++){var bal=new THREE.Mesh(new THREE.BoxGeometry(.07,.85,.07),railMat);bal.position.set(15+side*2.05,.55+bi*.68,1.3-bi*1.85);scene.add(bal);}
+    var rx=15+side*1.8;
+    var handrail=new THREE.Mesh(new THREE.BoxGeometry(.1,.08,stairLen),railMat);
+    handrail.position.set(rx,3.6+.97,-6);handrail.rotation.x=stairSlope;scene.add(handrail);
+    for(var bi=0;bi<18;bi+=2){
+      var bal=new THREE.Mesh(new THREE.BoxGeometry(.06,.86,.06),railMat);
+      bal.position.set(rx,.2+bi*.4+.11+.43,2.5-bi);scene.add(bal);
+    }
+    // Physical rail so nobody walks off the side of the flight. Only active for someone actually on the stairs.
+    for(var rs=0;rs<18;rs++){
+      colliders.push({minX:rx-.06,maxX:rx+.06,minZ:2-rs,maxZ:3-rs,floorY:0,stairRail:true,minY:rs*.4+.6});
+    }
   }
-  // Broken, blood-rusted railing around the loft edge; leave the stair landing open.
-  for(var ri=0;ri<10;ri++){
-    if(ri===4||ri===5) continue;
-    var rail=new THREE.Mesh(new THREE.BoxGeometry(2.2,.18,.18),railMat);
-    rail.position.set(4+ri*2.35,7.0,-3);scene.add(rail);
+  // Enclose the stair shaft above the ground-floor ceiling so you never see out into the void.
+  function shaftWall(x0,x1,z0,z1,y0,y1){
+    var w=x1-x0,d=z1-z0,h=y1-y0;
+    box(w,h,d,(x0+x1)/2,(y0+y1)/2,(z0+z1)/2,wallMat(Math.max(w,d),h),false);
+  }
+  shaftWall(12.0,12.5,-15.5,-0.5,3.55,7.18);   // west, lower shaft
+  shaftWall(17.5,18.0,-15.5,-0.5,3.55,7.18);   // east, lower shaft
+  shaftWall(12.0,12.5,-2.75,-0.5,7.18,10.8);   // west, passes up beside the loft wall gap
+  shaftWall(17.5,18.0,-2.75,-0.5,7.18,10.8);   // east
+  shaftWall(12.0,18.0,-15.5,-15.0,3.55,7.18);  // north end under the loft floor edge
+  shaftWall(12.0,18.0,-0.5,0,3.55,10.8);       // south end of the shaft
+  var shaftRoof=new THREE.Mesh(new THREE.PlaneGeometry(6,2.75),new THREE.MeshStandardMaterial({map:ct,roughness:1,side:THREE.DoubleSide}));
+  shaftRoof.rotation.x=Math.PI/2; shaftRoof.position.set(15,10.85,-1.375); scene.add(shaftRoof);
+  // Safety rails along both sides of the loft stairwell opening.
+  for(var le=0;le<2;le++){
+    var lx=le===0?12.5:17.5;
+    var lrail=new THREE.Mesh(new THREE.BoxGeometry(.08,.08,11.2),railMat);
+    lrail.position.set(lx,7.2+.95,-8.6);scene.add(lrail);
+    for(var lp=0;lp<6;lp++){var post=new THREE.Mesh(new THREE.BoxGeometry(.07,.95,.07),railMat);post.position.set(lx,7.2+.475,-3.2-lp*2.3);scene.add(post);}
+    colliders.push({minX:lx-.08,maxX:lx+.08,minZ:-14.2,maxZ:-3,floorY:7.2});
   }
   // Flickering red warning lamps over the stair landing.
   for(var li=0;li<3;li++){var lamp=new THREE.Mesh(new THREE.BoxGeometry(.22,.12,.12),new THREE.MeshBasicMaterial({color:0x9b1018}));lamp.position.set(10+li*5,7.0,-4.2);scene.add(lamp);var glow=new THREE.PointLight(0x8d0710,.45,5,2);glow.position.set(10+li*5,6.7,-4.2);scene.add(glow);}
 
-  var ceiling = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshStandardMaterial({ map: ct }));
+  // Ground-floor ceiling with an opening over the stairs so the flight passes through it cleanly.
+  var ceilTex = ct.clone(); ceilTex.needsUpdate = true; ceilTex.repeat.set(.25, .25);
+  var ceilShape = new THREE.Shape();
+  ceilShape.moveTo(-50,-50); ceilShape.lineTo(50,-50); ceilShape.lineTo(50,50); ceilShape.lineTo(-50,50); ceilShape.lineTo(-50,-50);
+  var ceilHole = new THREE.Path();
+  ceilHole.moveTo(12.5,-15); ceilHole.lineTo(12.5,-0.5); ceilHole.lineTo(17.5,-0.5); ceilHole.lineTo(17.5,-15); ceilHole.lineTo(12.5,-15);
+  ceilShape.holes.push(ceilHole);
+  var ceiling = new THREE.Mesh(new THREE.ShapeGeometry(ceilShape), new THREE.MeshStandardMaterial({ map: ceilTex }));
   ceiling.rotation.x = Math.PI / 2; ceiling.position.y = WALL_H; scene.add(ceiling);
 
   // Outer walls
@@ -1098,8 +1157,9 @@ function buildLevelMap(){
 }
 
 /* ============ DOORS ============ */
-function createDoor(x, z, rotationY){
-  var g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = rotationY;
+function createDoor(x, z, rotationY, floorBase){
+  floorBase = floorBase || 0;
+  var g = new THREE.Group(); g.position.set(x, floorBase, z); g.rotation.y = rotationY;
 
   var dc = document.createElement('canvas'); dc.width = 128; dc.height = 256;
   var dg = dc.getContext('2d');
@@ -1202,7 +1262,7 @@ function createDoor(x, z, rotationY){
   var data = {
     pivot: pivot,
     isOpen: false, isAnimating: false, targetRotation: 0,
-    type: 'door', pos: new THREE.Vector3(x, 0, z),
+    type: 'door', pos: new THREE.Vector3(x, floorBase, z),
     hasSearched: false, fuseSpawned: false
   };
   leaf.userData = data;
@@ -1211,7 +1271,7 @@ function createDoor(x, z, rotationY){
 
   var hw = rotationY === 0 ? 1.35 : 0.2;
   var hd = rotationY === 0 ? 0.2 : 1.35;
-  colliders.push({ minX: x - hw, maxX: x + hw, minZ: z - hd, maxZ: z + hd, door: data });
+  colliders.push({ minX: x - hw, maxX: x + hw, minZ: z - hd, maxZ: z + hd, floorY: floorBase, door: data });
 }
 
 function pushCircleOutOfBoxes(p, r, isMonster){
@@ -1221,11 +1281,14 @@ function pushCircleOutOfBoxes(p, r, isMonster){
   var onUpperFloor = referenceY > 4.5 && hereFloor >= 7.1;
   colliders.forEach(function(c){
     if (c.door && c.door.isOpen) return;
-    if (c.windowRef && c.windowRef.broken) return;
+    if (!isMonster && c.windowRef && c.windowRef.broken) return;
+    // Someone high on the stairs is above the ground-floor walls; those must not squeeze them.
+    if (!isMonster && !c.stairRail && (c.floorY || 0) < 3.6 && referenceY > 5.3) return;
+    if (isMonster && c.stairRail) return;   // the flight's side rails are for the player; the Warden walks the centre line
+    if (c.minY !== undefined && referenceY < c.minY) return;
     if (isMonster && monsterUsingStairs && (c.floorY || 0) < 3.6) return;
     if ((c.floorY || 0) >= 3.6 && !onUpperFloor) return;
     if ((c.floorY || 0) < 3.6 && onUpperFloor) return;
-    if (isMonster && c.windowRef) { breakWindowGlass(c.windowRef); return; }
     var cx = Math.max(c.minX, Math.min(p.x, c.maxX));
     var cz = Math.max(c.minZ, Math.min(p.z, c.maxZ));
     var dx = p.x - cx, dz = p.z - cz, d2 = dx * dx + dz * dz;
@@ -1295,35 +1358,40 @@ function makeFuse(x, z, id, floorY){
   return group;
 }
 function spawnFuses(){
-  // Every run spreads the three required fuses across the map. Sometimes one is hidden upstairs.
+  // Six fuses are scattered each run. Randomly split them between both floors.
   var groundSpots = [
     [-42,-42], [42,-42], [42,42], [-42,42], [-25,-40], [25,-40],
     [-40,18], [40,18], [-22,25], [22,25], [0,-38], [0,38],
-    [-35,-5], [35,-5], [-42,0], [42,0], [0,-42], [0,42], [-28,8], [28,-8]
+    [-35,-5], [35,-5], [-42,0], [42,0], [0,-42], [0,42], [-28,8], [28,-8],
+    [-34,27], [34,27], [-30,-22], [30,22], [-15,38], [15,38]
   ];
-  var upperSpots = [[8,-8],[22,-8],[8,-22],[22,-22],[10,-14],[20,-14]];
+  var upperSpots = [[8,-8],[22,-8],[8,-22],[22,-22],[10,-14],[20,-14],[6,-17],[24,-17],[8,5],[22,5]];
   function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;}return a;}
   shuffle(groundSpots); shuffle(upperSpots);
-  var chosen=[], minDistance=30, upstairsChance=Math.random()<0.62;
-  if(upstairsChance){
-    var up=upperSpots[0]; chosen.push({x:up[0],z:up[1],y:7.2});
+  var chosen=[], upstairsCount=1+Math.floor(Math.random()*3);
+  for(var u=0;u<upstairsCount && u<upperSpots.length;u++){
+    var up=upperSpots[u]; chosen.push({x:up[0],z:up[1],y:7.2});
   }
-  for(var c=0;c<groundSpots.length && chosen.length<3;c++){
+  var minDistance=13;
+  for(var c=0;c<groundSpots.length && chosen.length<6;c++){
     var q=groundSpots[c], ok=chosen.every(function(p){var dx=q[0]-p.x,dz=q[1]-p.z;return Math.sqrt(dx*dx+dz*dz)>=minDistance;});
     if(ok)chosen.push({x:q[0],z:q[1],y:0});
   }
-  // If the upstairs layout cannot produce two safely distant ground locations, use all-ground mode.
-  if(chosen.length<3){chosen=[];for(var g=0;g<groundSpots.length&&chosen.length<3;g++){var a=groundSpots[g],good=chosen.every(function(p){var dx=a[0]-p.x,dz=a[1]-p.z;return Math.sqrt(dx*dx+dz*dz)>=minDistance;});if(good)chosen.push({x:a[0],z:a[1],y:0});}}
-  for(var k=0;k<chosen.length;k++){
+  // Always produce six fuses even if the random spacing filter leaves too few ground spots.
+  for(var g=0;chosen.length<6 && g<groundSpots.length;g++){
+    var a=groundSpots[g];
+    if(!chosen.some(function(p){return p.y===0 && Math.abs(p.x-a[0])<2 && Math.abs(p.z-a[1])<2;})) chosen.push({x:a[0],z:a[1],y:0});
+  }
+  for(var k=0;k<chosen.length && k<6;k++){
     var spot=chosen[k];
-    makeFuse(spot.x+(Math.random()-.5)*2,spot.z+(Math.random()-.5)*2,'fuse_'+(k+1),spot.y);
+    makeFuse(spot.x+(Math.random()-.5)*1.4,spot.z+(Math.random()-.5)*1.4,'fuse_'+(k+1),spot.y);
   }
 }
 
 function trySpawnFuseFromDoor(data){
   if (data.fuseSpawned || data.hasSearched) return;
   data.hasSearched = true;
-  if (fusesCollected + fuseObjects.length >= 3) return;
+  if (fusesCollected + fuseObjects.length >= 6) return;
   if (Math.random() < 0.35) {
     data.fuseSpawned = true;
     var p = data.pos;
@@ -1337,21 +1405,21 @@ function trySpawnFuseFromDoor(data){
 
 /* ============ NOTES ============ */
 function spawnNotes(){
-  // Every run gets a fresh three-digit code; each clue reveals its corresponding digit.
-  var digits = [0,1,2,3,4,5,6,7,8,9].sort(function(){ return Math.random() - 0.5; }).slice(0,3);
+  // Every run gets a fresh five-digit code; each clue reveals one digit.
+  var digits = [0,1,2,3,4,5,6,7,8,9].sort(function(){ return Math.random() - 0.5; }).slice(0,5);
   secretCode = digits.join('');
   var defs = [
-    { x: -42, z: -10, i: 0, d: String(digits[0]), t: 'NURSE MOREAU\'S LOG: "The Warden is listening. First security digit: ' + digits[0] + '."' },
-    { x: 42, z: 10, i: 1, d: String(digits[1]), t: 'BLACKWOOD MEMO: "Keep quiet. Second security digit: ' + digits[1] + '."' },
-    { x: -10, z: 42, i: 2, d: String(digits[2]), t: 'SCRATCHED INTO A CRATE: "There is no safe room. Last security digit: ' + digits[2] + '."' },
+    { x: -42, z: -10, i: 0, d: String(digits[0]), title:'NURSE MOREAU // CODE FRAGMENT I', t: 'NURSE MOREAU\'S LOG: The first digit of the emergency code is ' + digits[0] + '. I have written it here because the terminal keeps erasing the records.' },
+    { x: 42, z: 10, i: 1, d: String(digits[1]), title:'SECURITY MEMO // CODE FRAGMENT II', t: 'SECURITY MEMO: Second code digit: ' + digits[1] + '. Never write the complete code in one place.' },
+    { x: -10, z: 42, i: 2, d: String(digits[2]), title:'CRATE SCRATCHING // CODE FRAGMENT III', t: 'Scratched into the crate: Third security digit is ' + digits[2] + '. The Warden comes when the scratching stops.' },
+    { x: 8, z: -8, y: 7.2, i: 3, d: String(digits[3]), title:'UPPER ARCHIVE // CODE FRAGMENT IV', t: 'A page torn from the upper archive ledger. Fourth code digit: ' + digits[3] + '. The doors upstairs were never meant to be opened after dark.' },
+    { x: 22, z: -22, y: 7.2, i: 4, d: String(digits[4]), title:'WARDEN CASE FILE // CODE FRAGMENT V', t: 'Final security digit: ' + digits[4] + '. Silas Crane memorized the code. Staff believe he still whispers it while he patrols the rooms.' },
     { x: -42, z: -39, i: -1, d: '', title:'SHIFT REPORT // 02:13 A.M.', t:'The east wing lights went out at 02:13. The emergency generator was still running, but every camera showed the same empty corridor. At 02:14, every camera showed a face pressed against the lens. No one was standing in the corridor.' },
     { x: 39, z: -40, i: -1, d: '', title:'ORDERLY CRANE: PERSONNEL FILE', t:'Name: Silas Crane. Position: Night orderly.\n\nCrane volunteered for the Echo Treatment after the first patient began repeating sounds recorded hours earlier. Following the procedure, Crane stopped speaking. He began listening at doors. Staff reported hearing their own voices from inside locked rooms.' },
     { x: 0, z: 43, i: -1, d: '', title:'MAINTENANCE NOTE: WINDOWS', t:'Do not board over the observation windows. The frames are old, but the lower sashes still open. In an emergency, climb through rather than waste time with the locks. If you hear fingernails tapping from the other side of the glass, do not look for the hand.' },
     { x: -39, z: 39, i: -1, d: '', title:'PATIENT 419 // TRANSCRIPT', t:'PATIENT: It knows when I am afraid.\nDOCTOR: What does?\nPATIENT: The thing behind my eyes.\nDOCTOR: There is nothing behind your eyes.\nPATIENT: Then why is it looking out through yours?' },
-    { x: 15, z: -15, y: 7.2, i: -1, d: '', title:'UPPER ARCHIVE // DO NOT ENTER', t:'The upper archive was sealed after the staff began finding fresh footprints in the dust. They led up the stairs, crossed the loft, and stopped at the railing. No footprints came back down.\n\nSomeone has been moving the furniture upstairs. The night guards refuse to go near it.' },
-    { x: 21, z: -21, y: 7.2, i: -1, d: '', title:'LAST ENTRY — M. VALE', t:'I found Crane standing at the end of the loft. His head was tilted toward the floor below, listening to me breathe. I ran down the stairs. He did not follow.\n\nI can still hear him up there. The footsteps are coming down now. They are stopping on every stair, as if he is counting.' },
-    { x: -18, z: 18, i: -1, d: '', title:'TORN LETTER', t:'If you find this, Mara, take the elevator. Do not trust the security monitor. The image is delayed by eleven seconds. If you see yourself standing still on the screen, you have already moved. If you see someone behind you, do not turn around until the image catches up.' },
-    { x: 40, z: 0, i: -1, d: '', title:'ELEVATOR INSPECTION', t:'The elevator does not go to the ground floor anymore. The button marked G was removed. The lift still travels upward when the emergency lever is pulled, but the cable tension readings suggest the car is descending. Engineering has been instructed to stop asking where it goes.' }
+    { x: 15, z: -15, y: 7.2, i: -1, d: '', title:'UPPER ARCHIVE // DO NOT ENTER', t:'The upper archive was sealed after the staff began finding fresh footprints in the dust. They led up the stairs, crossed the loft, and stopped at the railing. No footprints came back down. Someone has been moving the furniture upstairs. The night guards refuse to go near it.' },
+    { x: -18, z: 18, i: -1, d: '', title:'TORN LETTER', t:'If you find this, Mara, take the elevator. Do not trust the security monitor. The image is delayed by eleven seconds. If you see yourself standing still on the screen, you have already moved.' }
   ];
   var crateMat = new THREE.MeshStandardMaterial({ color: 0x3a2d1e, roughness: 0.9 });
   defs.forEach(function(n){
@@ -1502,7 +1570,7 @@ function updateObjective(){
     return;
   }
   var parts = [];
-  if (!fusesInserted) parts.push('Insert ' + fusesCollected + '/3 fuses at FUSE BOX (west)');
+  if (!fusesInserted) parts.push('Insert ' + fusesCollected + '/6 fuses at FUSE BOX (west)');
   else parts.push('✓ Fuses inserted');
   if (!codeEntered) parts.push('Enter code (' + notesFound + '/3 digits) at TERMINAL (north)');
   else parts.push('✓ Code entered');
@@ -1591,7 +1659,7 @@ function spawnAnimatedMonster(){
     if (side < 0) entityParts.legL = leg; else entityParts.legR = leg;
   });
 
-  entityMesh.scale.set(1.65, 1.72, 1.65);
+  entityMesh.scale.setScalar(0.8);
   entityMesh.position.copy(entityPosition);
   scene.add(entityMesh);
 }
@@ -1752,8 +1820,17 @@ function vaultThroughWindow(w){
   playVaultSound();
   if(firstBreak){
     // The first shatter is a loud event: the Warden is drawn to the broken window.
-    glassNoisePos.copy(w.position); glassNoiseTimer=14;
-    monsterTargetPos.copy(w.position); monsterState='investigate';
+    // Target a reachable floor cell beside the window, not the glass/wall itself.
+    // A target embedded in a wall can leave the pathfinder with no route and make him appear frozen.
+    if(!navGrids) buildNavGrids();
+    var noiseLevel=(w.floorY>3.6)?1:0;
+    var noiseCell=navNearest(navGrids[noiseLevel],w.position.x,w.position.z,7);
+    if(noiseCell>=0){
+      glassNoisePos.set(NAV_MIN+(noiseCell%NAV_N)+0.5,noiseLevel?4.2:0,NAV_MIN+Math.floor(noiseCell/NAV_N)+0.5);
+    } else { glassNoisePos.copy(w.position); }
+    glassNoiseTimer=14;
+    monsterTargetPos.copy(glassNoisePos); monsterState='investigate';
+    monsterPath=null; monsterRepathTimer=0; monsterPathIdx=0; monsterPatrolSet=false;
     showTransientMsg('GLASS SHATTERED! THE WARDEN HEARD IT — HIDE!');
   } else {
     showTransientMsg('BROKEN WINDOW — THE OPENING IS CLEAR. VAULT THROUGH SAFELY.');
@@ -1775,9 +1852,11 @@ function alertMonsterToNoise(pos, radius){
   if (entityPosition.distanceTo(pos) < radius) {
     if (monsterState === 'patrol' || monsterState === 'stalk') {
       monsterTargetPos.copy(pos);
+      monsterTargetPos.y = getWalkableFloorHeight(pos.x, pos.z, pos.y);
       monsterState = 'investigate';
     } else if (monsterState === 'investigate') {
       monsterTargetPos.copy(pos);
+      monsterTargetPos.y = getWalkableFloorHeight(pos.x, pos.z, pos.y);
     }
   }
 }
@@ -1811,10 +1890,10 @@ function handleInteraction(){
     fusesCollected++;
     playSound(520, 'sine', 0.2, 0.15);
     alertMonsterToNoise(camera.position, 45);
-    showTransientMsg('Fuse taken (' + fusesCollected + '/3). Insert them at the FUSE BOX near the elevator (south wall).');
+    showTransientMsg('Fuse taken (' + fusesCollected + '/6). Insert them at the FUSE BOX near the elevator (south wall).');
     updateObjective();
   } else if (data.type === 'note') {
-    if (!data.read) { data.read = true; if (data.i >= 0 && data.i < 3) { notesFound++; codeDigits[data.i] = data.d; } }
+    if (!data.read) { data.read = true; if (data.i >= 0 && data.i < 5) { notesFound++; codeDigits[data.i] = data.d; } }
     openNoteReader(data.title || 'RECOVERED DOCUMENT', data.t);
     playSound(330, 'triangle', 0.15, 0.1);
     updateObjective();
@@ -1822,7 +1901,7 @@ function handleInteraction(){
     openTerminal();
   } else if (data.type === 'fusebox') {
     if (fusesInserted) { showTransientMsg("Fuses already inserted."); return; }
-    if (fusesCollected < 3) { showTransientMsg("FUSE BOX: Need all 3 fuses. You have " + fusesCollected + "/3."); return; }
+    if (fusesCollected < 6) { showTransientMsg("FUSE BOX: Need all 6 fuses. You have " + fusesCollected + "/6."); return; }
     fusesInserted = true;
     if (fuseBoxMesh) {
       fuseBoxMesh.slots.forEach(function(s){
@@ -1985,7 +2064,7 @@ function retryGame(){
     isVaulting = false; vaultProgress = 0; vaultStartPos = null; vaultEndPos = null;
     playerVelocityY = 0; isGrounded = true; velocity.set(0,0,0); direction.set(0,0,0);
     turnL = turnR = lookU = lookD = false;
-    codeDigits = ['?','?','?']; stepTimer = 0; lastCrank = 0;
+    codeDigits = ['?','?','?','?','?']; stepTimer = 0; lastCrank = 0;
     interactables = []; doors = []; windows = []; windowShards = []; fuseObjects = [];
     colliders = []; flickerLights = []; securityCams = []; activeCamIdx = 0;
     monsterState = 'patrol'; monsterTargetPos.set(0,0,0); entityPosition.set(15,0,2.5);
@@ -2013,9 +2092,10 @@ function retryGame(){
     var noteReader = document.getElementById('note-reader'); if (noteReader) noteReader.classList.remove('open');
     var termInput = document.getElementById('term-input'); if (termInput) termInput.value = '';
     var toast = document.getElementById('toast'); if (toast) toast.style.opacity = '0';
-    var objective = document.getElementById('objective'); if (objective) objective.innerText = 'OBJECTIVE: Collect 3 fuses.';
+    var objective = document.getElementById('objective'); if (objective) objective.innerText = 'OBJECTIVE: Collect 6 fuses and find 5 code notes.';
     var titleScreen = document.getElementById('title-screen'); if (titleScreen) titleScreen.style.display = 'none';
     var settingsScreen = document.getElementById('settings-screen'); if (settingsScreen) settingsScreen.style.display = 'none';
+    var pauseMenu = document.getElementById('pause-screen'); if (pauseMenu) pauseMenu.style.display = 'none';
     var ui = document.getElementById('ui-overlay'); if (ui) ui.style.display = 'flex';
     var crosshair = document.getElementById('crosshair'); if (crosshair) crosshair.style.display = 'block';
     document.body.classList.add('game-active');
@@ -2052,7 +2132,11 @@ function getWalkableFloorHeight(x,z,referenceY){
   // referenceY prevents the overlapping loft footprint from teleporting ground-floor players upward.
   if(referenceY===undefined || referenceY===null) referenceY=STAND_HEIGHT;
   // A broad, forgiving stair lane reaches the floor on both ends; height matches the visible treads.
-  if(x>12.35 && x<17.65 && z<=3.2 && z>=-15.1) return Math.max(0,Math.min(7.2,((3-z)/18)*7.2));
+  if(x>12.9 && x<17.1 && z<=3.2 && z>=-15.1){
+    var ramp=Math.max(0,Math.min(7.2,((3-z)/18)*7.2));
+    // Only treat it as a stair if the body is up at stair height; otherwise you're walking under the flight.
+    if(referenceY>=ramp+0.6) return ramp;
+  }
   // The loft spans the whole walled rectangle, but only players already on that level can use it.
   if(x>=2.3 && x<=27.7 && z<=-2.3 && z>=-27.7 && referenceY>4.5) return 7.2;
   return 0;
@@ -2180,14 +2264,236 @@ function updateFuses(t){
   });
 }
 
+
+/* ================== ALIEN GHOST (non-lethal scare that calls the Warden) ================== */
+var GHOST_INTERVAL = 120;          // seconds of play between appearances (about 2 minutes)
+var ghostTimer = 120, ghostShowing = false, ghostAlertTimer = 0, ghostEl = null;
+function initGhost(){
+  ghostTimer = GHOST_INTERVAL + (Math.random() * 20 - 10);
+  ghostShowing = false; ghostAlertTimer = 0;
+  if (!document.getElementById('ghost-style')) {
+    var st = document.createElement('style'); st.id = 'ghost-style';
+    st.textContent =
+      '#ghost-overlay{position:absolute;inset:0;z-index:99;display:none;align-items:center;justify-content:center;pointer-events:none;overflow:hidden;background:radial-gradient(ellipse at center,rgba(120,255,230,.22),rgba(0,10,12,.9) 75%)}' +
+      '#ghost-overlay.on{display:flex;animation:ghostFlicker .09s steps(2,end) infinite}' +
+      '#ghost-overlay.on .alien{animation:ghostLunge 1.5s cubic-bezier(.05,.8,.1,1) both}' +
+      '.alien{position:relative;width:min(46vh,70vw);height:min(62vh,92vw);filter:drop-shadow(0 0 40px rgba(110,255,220,.8)) blur(.4px);opacity:.88}' +
+      '.alien .head{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 38%,#b8cfc6 0%,#7f9a91 55%,#37514a 100%);border-radius:50% 50% 46% 46% / 38% 38% 62% 62%;clip-path:ellipse(50% 50% at 50% 50%)}' +
+      '.alien .eye{position:absolute;top:36%;width:30%;height:19%;background:radial-gradient(ellipse at 40% 35%,#1b2b2a 0%,#000 55%);border-radius:50%;box-shadow:inset 0 0 18px #000,0 0 22px rgba(130,255,230,.55)}' +
+      '.alien .eye.l{left:10%;transform:rotate(24deg)}.alien .eye.r{right:10%;transform:rotate(-24deg)}' +
+      '.alien .nose{position:absolute;top:60%;left:46%;width:8%;height:3%;border-radius:50%;background:#1e302c;box-shadow:-10px 0 0 #1e302c}' +
+      '.alien .mouth{position:absolute;top:73%;left:38%;width:24%;height:2.2%;background:#0b1513;border-radius:50%;animation:ghostMouth .12s steps(2,end) infinite alternate}' +
+      '#ghost-overlay .gtxt{position:absolute;bottom:9%;width:100%;text-align:center;color:#9ff;font:bold clamp(16px,3vw,32px) monospace;letter-spacing:.5em;text-shadow:0 0 14px #0ff,0 0 30px #088}' +
+      '@keyframes ghostLunge{0%{transform:scale(.25) translateY(30%) skewX(0)}12%{transform:scale(1.1) translateY(0)}30%{transform:scale(.95) skewX(5deg)}55%{transform:scale(1.25) skewX(-6deg)}85%{transform:scale(1.4);opacity:.9}100%{transform:scale(1.6);opacity:0}}' +
+      '@keyframes ghostFlicker{0%{filter:brightness(1) hue-rotate(0)}50%{filter:brightness(1.8) hue-rotate(25deg);transform:translate(3px,-2px)}100%{filter:brightness(.7);transform:translate(-3px,2px)}}' +
+      '@keyframes ghostMouth{from{transform:scaleY(1) scaleX(1)}to{transform:scaleY(5) scaleX(1.15)}}';
+    document.head.appendChild(st);
+  }
+  ghostEl = document.getElementById('ghost-overlay');
+  if (ghostEl) ghostEl.remove();
+  ghostEl = document.createElement('div'); ghostEl.id = 'ghost-overlay';
+  ghostEl.innerHTML = '<div class="alien"><div class="head"></div><div class="eye l"></div><div class="eye r"></div><div class="nose"></div><div class="mouth"></div></div><div class="gtxt">IT SEES YOU</div>';
+  document.getElementById('game-container').appendChild(ghostEl);
+}
+function playGhostSound(){
+  if (!audioCtx) return;
+  try {
+    var now = audioCtx.currentTime;
+    [[2400,260,.34,1.4,'sawtooth'],[1700,190,.26,1.3,'triangle'],[90,40,.4,1.2,'square']].forEach(function(l,i){
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain(), f = audioCtx.createBiquadFilter();
+      var lfo = audioCtx.createOscillator(), lg = audioCtx.createGain();
+      lfo.frequency.value = 38 + i * 9; lg.gain.value = l[0] * 0.08; lfo.connect(lg); lg.connect(o.frequency);
+      o.type = l[4]; o.frequency.setValueAtTime(l[0], now); o.frequency.exponentialRampToValueAtTime(l[1], now + l[3]);
+      f.type = i === 2 ? 'lowpass' : 'bandpass'; f.frequency.value = i === 2 ? 200 : 1400;
+      g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(l[2], now + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, now + l[3]);
+      o.connect(f); f.connect(g); g.connect(OUT());
+      o.start(now); lfo.start(now); o.stop(now + l[3] + .05); lfo.stop(now + l[3] + .05);
+    });
+  } catch(e){}
+}
+function triggerGhostScare(){
+  if (ghostShowing || isDead) return;
+  ghostShowing = true;
+  if (ghostEl) { ghostEl.classList.remove('on'); void ghostEl.offsetWidth; ghostEl.classList.add('on'); }
+  playGhostSound();
+  // The shriek carries: the Warden is sent straight to you and keeps tracking you for a while.
+  ghostAlertTimer = 25;
+  showTransientMsg('SOMETHING SCREAMED... THE WARDEN IS COMING FOR YOU. MOVE!');
+  setTimeout(function(){ if (ghostEl) ghostEl.classList.remove('on'); ghostShowing = false; }, 1500);
+}
+function updateGhost(delta){
+  if (ghostAlertTimer > 0) ghostAlertTimer = Math.max(0, ghostAlertTimer - delta);
+  if (ghostShowing) return;
+  ghostTimer -= delta;
+  if (ghostTimer > 0) return;
+  if (isTerminalOpen || isNoteOpen || isVaulting) return;     // wait for a calmer moment
+  if (Math.random() < 0.85) { triggerGhostScare(); ghostTimer = GHOST_INTERVAL + (Math.random() * 20 - 10); }
+  else ghostTimer = 20;                                       // it held back this time; try again soon
+}
+
 /* ================== MONSTER AI ================== */
 function hasLineOfSight(from,to){
   // Keep visibility conservative and stable; nearby walls still physically block movement.
   return true;
 }
 var monsterScareCooldown=0, monsterAnimTime=0, monsterLastGrowl=0;
+
+/* ---- Navigation grids (1x1 cells). Level 0 = ground floor, level 1 = upstairs loft. ---- */
+var NAV_MIN=-52, NAV_N=104, navGrids=null;
+var _navG=new Float32Array(NAV_N*NAV_N), _navP=new Int32Array(NAV_N*NAV_N), _navC=new Uint8Array(NAV_N*NAV_N);
+var monsterPath=null, monsterPathIdx=0, monsterPathLevel=0, monsterPathGoal=new THREE.Vector3(1e9,0,1e9), monsterRepathTimer=0;
+var monsterPatrolSet=false, monsterMoving=false, monsterStuckTimer=0, monsterStuckStrikes=0, monsterStuckPos=new THREE.Vector3();
+var STAIR_ENTRY_LOW=new THREE.Vector3(15,0,2.6), STAIR_ENTRY_HIGH=new THREE.Vector3(15,7.2,-15.5);
+var STAIR_EXIT_HIGH=new THREE.Vector3(15,7.2,-15.4), STAIR_EXIT_LOW=new THREE.Vector3(15,0,2.9);
+
+function navMarkRect(g,minX,maxX,minZ,maxZ,val){
+  var x0=Math.max(0,Math.ceil(minX-NAV_MIN-.5)), x1=Math.min(NAV_N-1,Math.floor(maxX-NAV_MIN-.5));
+  var z0=Math.max(0,Math.ceil(minZ-NAV_MIN-.5)), z1=Math.min(NAV_N-1,Math.floor(maxZ-NAV_MIN-.5));
+  for(var cz=z0;cz<=z1;cz++) for(var cx=x0;cx<=x1;cx++) g[cz*NAV_N+cx]=val;
+}
+function buildNavGrids(){
+  var r=0.62, g0=new Uint8Array(NAV_N*NAV_N), g1=new Uint8Array(NAV_N*NAV_N); g1.fill(1);
+  navMarkRect(g1,3.1,26.9,-26.9,-3.1,0);                       // loft floor
+  colliders.forEach(function(c){
+    if(c.door||c.stairRail) return;                              // doors are passable (the Warden opens them)
+    var upper=(c.floorY||0)>=3.6;                                // windows are walls for him either way
+    navMarkRect(upper?g1:g0,c.minX-r,c.maxX+r,c.minZ-r,c.maxZ+r,1);
+  });
+  navMarkRect(g0,12.5,17.5,0.2,2.0,1);                           // the foot of the flight: only enterable on a real stair trip (he can still walk beneath the stairs at z<0)
+  navMarkRect(g1,12.4,17.6,-15.0,-2.8,1);                        // the stairwell hole
+  navGrids=[g0,g1];
+}
+function navFree(g,cx,cz){ return cx>=0&&cz>=0&&cx<NAV_N&&cz<NAV_N&&g[cz*NAV_N+cx]===0; }
+function navNearest(g,x,z,maxR){
+  var cx=Math.floor(x-NAV_MIN), cz=Math.floor(z-NAV_MIN);
+  if(navFree(g,cx,cz)) return cz*NAV_N+cx;
+  for(var r=1;r<=maxR;r++){
+    var best=-1,bd=1e9;
+    for(var dz=-r;dz<=r;dz++) for(var dx=-r;dx<=r;dx++){
+      if(Math.max(Math.abs(dx),Math.abs(dz))!==r) continue;
+      if(!navFree(g,cx+dx,cz+dz)) continue;
+      var d=Math.hypot(NAV_MIN+cx+dx+.5-x,NAV_MIN+cz+dz+.5-z);
+      if(d<bd){bd=d;best=(cz+dz)*NAV_N+cx+dx;}
+    }
+    if(best>=0) return best;
+  }
+  return -1;
+}
+function navLineClear(g,x0,z0,x1,z1){
+  var dx=x1-x0,dz=z1-z0,d=Math.hypot(dx,dz),n=Math.max(1,Math.ceil(d/0.3));
+  for(var i=1;i<=n;i++){
+    var t=i/n; if(t*d<0.5) continue;
+    if(!navFree(g,Math.floor(x0+dx*t-NAV_MIN),Math.floor(z0+dz*t-NAV_MIN))) return false;
+  }
+  return true;
+}
+function navFindPath(level,sx,sz,gx,gz){
+  var g=navGrids[level], s=navNearest(g,sx,sz,10), t=navNearest(g,gx,gz,14);
+  if(s<0||t<0) return null;
+  var tx=t%NAV_N, tz=(t/NAV_N)|0;
+  var H=function(i){return Math.hypot((i%NAV_N)-tx,((i/NAV_N)|0)-tz);};
+  _navG.fill(Infinity); _navC.fill(0);
+  var hk=[],hv=[];
+  var push=function(v,k){var i=hk.length;hk.push(k);hv.push(v);while(i>0){var pr=(i-1)>>1;if(hk[pr]<=hk[i])break;var tk=hk[pr];hk[pr]=hk[i];hk[i]=tk;var tv=hv[pr];hv[pr]=hv[i];hv[i]=tv;i=pr;}};
+  var pop=function(){var v=hv[0],lk=hk.pop(),lv=hv.pop();if(hk.length){hk[0]=lk;hv[0]=lv;var i=0,n=hk.length;for(;;){var l=2*i+1,r=l+1,m=i;if(l<n&&hk[l]<hk[m])m=l;if(r<n&&hk[r]<hk[m])m=r;if(m===i)break;var tk=hk[m];hk[m]=hk[i];hk[i]=tk;var tv=hv[m];hv[m]=hv[i];hv[i]=tv;i=m;}}return v;};
+  _navG[s]=0; _navP[s]=-1; push(s,H(s));
+  var best=s,bestH=H(s);
+  while(hk.length){
+    var cur=pop(); if(_navC[cur]) continue; _navC[cur]=1;
+    if(cur===t){best=t;break;}
+    var hc=H(cur); if(hc<bestH){bestH=hc;best=cur;}
+    var cx=cur%NAV_N, cz=(cur/NAV_N)|0;
+    for(var dz=-1;dz<=1;dz++) for(var dx=-1;dx<=1;dx++){
+      if(!dx&&!dz) continue;
+      var nx=cx+dx,nz=cz+dz; if(!navFree(g,nx,nz)) continue;
+      if(dx&&dz&&(!navFree(g,cx+dx,cz)||!navFree(g,cx,cz+dz))) continue;   // no corner cutting
+      var ni=nz*NAV_N+nx, ng=_navG[cur]+(dx&&dz?1.414:1);
+      if(ng<_navG[ni]){_navG[ni]=ng;_navP[ni]=cur;push(ni,ng+H(ni));}
+    }
+  }
+  var pts=[]; for(var c2=best;c2!==-1;c2=_navP[c2]) pts.push({x:NAV_MIN+(c2%NAV_N)+.5,z:NAV_MIN+((c2/NAV_N)|0)+.5});
+  pts.reverse();
+  // string-pull so he walks straight lines instead of zig-zagging cell to cell
+  var out=[],px=sx,pz=sz,i=0;
+  while(i<pts.length){
+    var j=pts.length-1;
+    while(j>i && !navLineClear(g,px,pz,pts[j].x,pts[j].z)) j--;
+    out.push(pts[j]); px=pts[j].x; pz=pts[j].z; i=j+1;
+  }
+  return out;
+}
+// Real wall test for kills: windows, walls and closed doors all block him from grabbing you.
+function monsterWallBetween(x0,z0,x1,z1,upper){
+  for(var i=0;i<colliders.length;i++){
+    var c=colliders[i];
+    if(c.stairRail) continue;
+    if(c.door && c.door.isOpen) continue;
+    if(((c.floorY||0)>=3.6)!==upper) continue;
+    var tmin=0,tmax=1,dx=x1-x0,dz=z1-z0,hit=true;
+    if(Math.abs(dx)<1e-9){ if(x0<c.minX||x0>c.maxX) hit=false; }
+    else { var a=(c.minX-x0)/dx,b=(c.maxX-x0)/dx; if(a>b){var t=a;a=b;b=t;} tmin=Math.max(tmin,a); tmax=Math.min(tmax,b); }
+    if(hit){
+      if(Math.abs(dz)<1e-9){ if(z0<c.minZ||z0>c.maxZ) hit=false; }
+      else { var a2=(c.minZ-z0)/dz,b2=(c.maxZ-z0)/dz; if(a2>b2){var t2=a2;a2=b2;b2=t2;} tmin=Math.max(tmin,a2); tmax=Math.min(tmax,b2); }
+    }
+    if(hit && tmin<=tmax) return true;
+  }
+  return false;
+}
+function chooseMonsterSpawn(){
+  buildNavGrids();
+  // Corner / edge rooms only, well away from the player's start, the stair room and the loft above it.
+  var cands=[[-38,-38],[-38,38],[38,38],[-38,0],[0,38]].filter(function(c){
+    return Math.hypot(c[0],c[1])>34 && Math.hypot(c[0]-15,c[1]+15)>34 && Math.hypot(c[0]-15,c[1]-2.5)>30;
+  });
+  var pick=cands[Math.floor(Math.random()*cands.length)];
+  var idx=navNearest(navGrids[0],pick[0],pick[1],8);
+  if(idx>=0) entityPosition.set(NAV_MIN+(idx%NAV_N)+.5,0,NAV_MIN+((idx/NAV_N)|0)+.5);
+  else entityPosition.set(pick[0],0,pick[1]);
+  monsterStairDirection=0; monsterStairPhase=0; monsterUsingStairs=false;
+  monsterPath=null; monsterPatrolSet=false; monsterState='patrol';
+  monsterStuckTimer=0; monsterStuckStrikes=0; monsterStuckPos.copy(entityPosition);
+  navGrids=null;   // rebuilt on first use, once every collider exists
+}
+function monsterPickPatrolTarget(level){
+  if(level===1){
+    var lp=[[8,-15],[22,-15],[6,-13],[24,-13],[15,-18]]; var q=lp[Math.floor(Math.random()*lp.length)];
+    monsterTargetPos.set(q[0],7.2,q[1]);
+  } else {
+    var tries=0,w;
+    do { w=WAYPOINTS[Math.floor(Math.random()*WAYPOINTS.length)]; tries++; }
+    while(tries<8 && Math.hypot(w.x-entityPosition.x,w.z-entityPosition.z)<12);
+    monsterTargetPos.set(w.x,0,w.z);
+  }
+  monsterPatrolSet=true;
+}
+function monsterOpenNearbyDoors(){
+  if(entityPosition.y>3.6) return;
+  doors.forEach(function(d){
+    if(d.isOpen||d.isAnimating) return;
+    if(Math.hypot(d.pos.x-entityPosition.x,d.pos.z-entityPosition.z)<2.4){
+      d.isOpen=true; d.targetRotation=Math.PI/2; d.isAnimating=true;
+      try{playDoorCreak();}catch(e){}
+    }
+  });
+}
+function monsterSteerPoint(level,tx,tz,delta){
+  var g=navGrids[level], ex=entityPosition.x, ez=entityPosition.z;
+  monsterRepathTimer-=delta;
+  if(Math.hypot(tx-ex,tz-ez)<1.2 || navLineClear(g,ex,ez,tx,tz)){ monsterPath=null; return {x:tx,z:tz}; }
+  if(!monsterPath || monsterRepathTimer<=0 || monsterPathLevel!==level || Math.hypot(tx-monsterPathGoal.x,tz-monsterPathGoal.z)>2.5){
+    monsterPath=navFindPath(level,ex,ez,tx,tz); monsterPathIdx=0; monsterPathLevel=level;
+    monsterPathGoal.set(tx,0,tz); monsterRepathTimer=0.7;
+  }
+  if(!monsterPath || !monsterPath.length) return null;
+  while(monsterPathIdx<monsterPath.length-1 && Math.hypot(monsterPath[monsterPathIdx].x-ex,monsterPath[monsterPathIdx].z-ez)<0.7) monsterPathIdx++;
+  var wp=monsterPath[monsterPathIdx];
+  if(monsterPathIdx===monsterPath.length-1 && Math.hypot(wp.x-ex,wp.z-ez)<0.4) return null;   // as close as he can get (e.g. you're behind a window)
+  return {x:wp.x,z:wp.z};
+}
 function updateMonster(delta){
   if(!entityMesh || !camera || isDead) return;
+  if(!navGrids) buildNavGrids();
   monsterAnimTime += delta;
   monsterScareCooldown=Math.max(0,monsterScareCooldown-delta);
   var playerFloor=getWalkableFloorHeight(camera.position.x,camera.position.z,camera.position.y);
@@ -2196,8 +2502,9 @@ function updateMonster(delta){
   entityPosition.y=monsterFloor;
   var m=entityPosition.clone();
   var dist=m.distanceTo(p);
-  var toPlayer=p.clone().sub(m);
-  if(glassNoiseTimer>0){
+  if(ghostAlertTimer>0){
+    monsterState='hunt'; monsterTargetPos.copy(p);
+  } else if(glassNoiseTimer>0){
     glassNoiseTimer=Math.max(0,glassNoiseTimer-delta);
     monsterState='investigate'; monsterTargetPos.copy(glassNoisePos);
     if(entityPosition.distanceTo(glassNoisePos)<1.7) glassNoiseTimer=0;
@@ -2205,55 +2512,83 @@ function updateMonster(delta){
     monsterState = dist<13 ? 'hunt' : 'stalk';
     monsterTargetPos.copy(p);
   } else if(monsterState==='investigate' && entityPosition.distanceTo(monsterTargetPos)<1.2){
-    monsterState='patrol';
+    monsterState='patrol'; monsterPatrolSet=false;
   }
-  var target=monsterTargetPos;
-  // When player and Warden are on different floors, force a real trip along the stairwell.
-  var playerIsUp=playerFloor>6.8, monsterIsUp=monsterFloor>6.8;
-  var desiredStairDirection=playerIsUp&&!monsterIsUp?1:(!playerIsUp&&monsterIsUp?-1:0);
-  // Latch the direction until the Warden reaches the other landing; do not cancel halfway up/down.
-  if(monsterStairDirection===0 && desiredStairDirection!==0){monsterStairDirection=desiredStairDirection;monsterStairPhase=0;}
-  monsterUsingStairs=monsterStairDirection!==0;
-  var stairBottom=new THREE.Vector3(15,0,2.5), stairTop=new THREE.Vector3(15,7.2,-15);
-  if(monsterStairDirection===1){
-    var db=Math.hypot(entityPosition.x-stairBottom.x,entityPosition.z-stairBottom.z);
-    if(monsterStairPhase===0 && db<1.7)monsterStairPhase=1;
-    if(monsterStairPhase===0)target=stairBottom;
-    else if(Math.hypot(entityPosition.x-stairTop.x,entityPosition.z-stairTop.z)>1.8)target=stairTop;
-    else {monsterStairDirection=0;monsterStairPhase=0;monsterUsingStairs=false;target=monsterTargetPos;}
-  } else if(monsterStairDirection===-1){
-    var dt=Math.hypot(entityPosition.x-stairTop.x,entityPosition.z-stairTop.z);
-    if(monsterStairPhase===0 && dt<1.8)monsterStairPhase=1;
-    if(monsterStairPhase===0)target=stairTop;
-    else if(Math.hypot(entityPosition.x-stairBottom.x,entityPosition.z-stairBottom.z)>1.8)target=stairBottom;
-    else {monsterStairDirection=0;monsterStairPhase=0;monsterUsingStairs=false;target=monsterTargetPos;}
+  if(monsterState!=='patrol') monsterPatrolSet=false;
+
+  var curLevel=entityPosition.y>3.6?1:0;
+  if(monsterState==='patrol' && (!monsterPatrolSet || Math.hypot(monsterTargetPos.x-entityPosition.x,monsterTargetPos.z-entityPosition.z)<2.5 || (monsterTargetPos.y>3.6?1:0)!==curLevel)) monsterPickPatrolTarget(curLevel);
+  var targetLevel=monsterTargetPos.y>3.6?1:0;
+
+  // ---- Floor changes: walk to the foot/head of the stairs on the current floor, then climb the flight ----
+  if(monsterStairDirection===0){
+    if(monsterState!=='patrol' && targetLevel!==curLevel){ monsterStairDirection=targetLevel>curLevel?1:-1; monsterStairPhase=0; }
+  } else if(monsterStairPhase===0 && targetLevel===curLevel){ monsterStairDirection=0; }
+  var navTarget=monsterTargetPos, navLevel=curLevel, climbing=false, moveX=null, moveZ=null;
+  if(monsterStairDirection!==0){
+    if(monsterStairPhase===0){
+      navTarget=monsterStairDirection===1?STAIR_ENTRY_LOW:STAIR_ENTRY_HIGH;
+      navLevel=monsterStairDirection===1?0:1;
+      if(Math.hypot(entityPosition.x-navTarget.x,entityPosition.z-navTarget.z)<1.0) monsterStairPhase=1;
+    }
+    if(monsterStairPhase===1){
+      var exitP=monsterStairDirection===1?STAIR_EXIT_HIGH:STAIR_EXIT_LOW;
+      if(monsterStairDirection===1?entityPosition.z<=exitP.z+0.25:entityPosition.z>=exitP.z-0.25){
+        monsterStairDirection=0; monsterStairPhase=0; monsterPath=null;
+      } else { climbing=true; moveX=exitP.x; moveZ=exitP.z; entityPosition.x+=(15-entityPosition.x)*Math.min(1,delta*5); }
+    }
   }
-  var dx=target.x-entityPosition.x, dz=target.z-entityPosition.z;
-  var d=Math.sqrt(dx*dx+dz*dz);
+  monsterUsingStairs=climbing;
+
+  if(!climbing){
+    monsterOpenNearbyDoors();
+    var sp=monsterSteerPoint(navLevel,navTarget.x,navTarget.z,delta);
+    if(sp){moveX=sp.x;moveZ=sp.z;}
+  }
+
+  var dx=0,dz=0,d=0; monsterMoving=false;
+  if(moveX!==null){ dx=moveX-entityPosition.x; dz=moveZ-entityPosition.z; d=Math.sqrt(dx*dx+dz*dz); }
   if(d>0.12){
-    var speed=monsterState==='hunt'?4.1:monsterState==='stalk'?1.9:monsterState==='investigate'?2.6:0.9;
-    // Sudden, unsettling burst when it gets close.
-    if(dist<8) speed=5.2;
-    if(dist<4.5 && Math.sin(monsterAnimTime*17)>0.35) speed=6.4; // violent, uneven final rush
+    var speed=monsterState==='hunt'?3.65:monsterState==='stalk'?1.8:monsterState==='investigate'?2.35:0.85;
+    // Slightly more forgiving chase speed, while keeping a dangerous close-range burst.
+    if(dist<8) speed=4.55;
+    if(dist<4.5 && Math.sin(monsterAnimTime*17)>0.35) speed=5.45;
+    if(climbing) speed=Math.min(speed,4.4);
     var step=Math.min(d,speed*delta);
     entityPosition.x += dx/d*step;
     entityPosition.z += dz/d*step;
     resolveMonsterCollisions();
     entityPosition.y=getWalkableFloorHeight(entityPosition.x,entityPosition.z,entityPosition.y+1.65);
     entityMesh.rotation.y=Math.atan2(dx,dz);
+    monsterMoving=true;
+  }
+
+  // ---- Stuck recovery: repath, then snap to the nearest open floor cell ----
+  monsterStuckTimer+=delta;
+  if(monsterStuckTimer>1.2){
+    var moved=Math.hypot(entityPosition.x-monsterStuckPos.x,entityPosition.z-monsterStuckPos.z);
+    if(moved<0.3 && !climbing && d>0.5 && dist>2.5){
+      monsterPath=null; monsterRepathTimer=0; monsterStuckStrikes++;
+      if(monsterStuckStrikes>=2){
+        var ci=navNearest(navGrids[curLevel],entityPosition.x,entityPosition.z,6);
+        if(ci>=0){ entityPosition.x=NAV_MIN+(ci%NAV_N)+.5; entityPosition.z=NAV_MIN+((ci/NAV_N)|0)+.5; }
+        monsterStuckStrikes=0;
+      }
+    } else monsterStuckStrikes=0;
+    monsterStuckPos.copy(entityPosition); monsterStuckTimer=0;
   }
   entityMesh.position.copy(entityPosition);
-  var horrorScale=dist<5?1.8:dist<14?1.45:1.18;
+  var horrorScale=dist<5?0.92:dist<14?0.86:0.8; // keeps his horns well under the 3.6 ceiling
   entityMesh.scale.setScalar(horrorScale);
   if(entityParts.torso){ entityParts.torso.rotation.z=Math.sin(monsterAnimTime*5.2)*0.07; entityParts.torso.rotation.x=Math.sin(monsterAnimTime*3.1)*0.04; }
   if(entityParts.neck){ entityParts.neck.rotation.x=dist<9?Math.sin(monsterAnimTime*13)*0.19:Math.sin(monsterAnimTime*2)*0.04; entityParts.neck.rotation.z=dist<5?Math.sin(monsterAnimTime*7)*0.2:Math.sin(monsterAnimTime*1.4)*0.035; }
   if(entityParts.jaw){ entityParts.jaw.rotation.x=dist<8?0.18+Math.abs(Math.sin(monsterAnimTime*11))*0.48:Math.abs(Math.sin(monsterAnimTime*2))*0.06; }
   if(entityParts.armL) entityParts.armL.rotation.x=Math.sin(monsterAnimTime*7)*0.18;
   if(entityParts.armR) entityParts.armR.rotation.x=-Math.sin(monsterAnimTime*7)*0.18;
-  if(entityParts.legL) entityParts.legL.rotation.x=Math.sin(monsterAnimTime*8)*0.25*(d>0.12?1:0.15);
-  if(entityParts.legR) entityParts.legR.rotation.x=-Math.sin(monsterAnimTime*8)*0.25*(d>0.12?1:0.15);
+  if(entityParts.legL) entityParts.legL.rotation.x=Math.sin(monsterAnimTime*8)*0.25*(monsterMoving?1:0.15);
+  if(entityParts.legR) entityParts.legR.rotation.x=-Math.sin(monsterAnimTime*8)*0.25*(monsterMoving?1:0.15);
   // No proximity glow: the Warden should not cast a red halo on nearby walls.
-  if(dist<2.05 && monsterScareCooldown<=0) triggerJumpscare();
+  if(dist<2.05 && monsterScareCooldown<=0 && !monsterWallBetween(entityPosition.x,entityPosition.z,p.x,p.z,entityPosition.y>3.6)) triggerJumpscare();
   if(dist<32 && performance.now()-monsterLastGrowl>2600){ monsterLastGrowl=performance.now(); try{playSound(48,'sawtooth',0.55,0.55);}catch(e){} }
 }
 function triggerJumpscare(){
@@ -2433,6 +2768,8 @@ function startGame(){
   document.body.classList.add('game-active');
   title.style.display = 'none';
   document.getElementById('settings-screen').style.display = 'none';
+  var pauseMenu=document.getElementById('pause-screen'); if(pauseMenu) pauseMenu.style.display='none';
+  isPaused=false; settingsReturnToPause=false;
   document.getElementById('ui-overlay').style.display = 'flex';
   document.getElementById('crosshair').style.display = 'block';
   if(!(renderer && renderer.xr && renderer.xr.isPresenting)){
@@ -2441,6 +2778,7 @@ function startGame(){
   }
 }
 function openSettings(){
+  settingsReturnToPause=false;
   startMenuMusic();
   document.getElementById('settings-screen').style.display = 'flex';
   document.getElementById('title-screen').style.display = 'none';
@@ -2448,7 +2786,10 @@ function openSettings(){
 }
 function closeSettings(){
   document.getElementById('settings-screen').style.display = 'none';
-  if (!gameStarted) { document.getElementById('title-screen').style.display = 'flex'; startMenuMusic(); }
+  if(settingsReturnToPause && gameStarted){
+    settingsReturnToPause=false; isPaused=true;
+    var pause=document.getElementById('pause-screen'); if(pause) pause.style.display='flex';
+  } else if (!gameStarted) { document.getElementById('title-screen').style.display = 'flex'; startMenuMusic(); }
 }
 function applySettings(){
   var get=function(id){return document.getElementById(id)};
@@ -2481,10 +2822,35 @@ function initWhispers(){
   if (whispersTimer) clearInterval(whispersTimer);
   if(el) { el.textContent=words[0]; whispersTimer=setInterval(function(){i=(i+1)%words.length;if(el && !gameStarted)el.textContent=words[i];},4200); }
 }
-function togglePause(){
-  isPaused=!isPaused;
-  if(isPaused){try{document.exitPointerLock?.();}catch(e){} showTransientMsg(document.body.classList.contains('touch-device')?'PAUSED — tap PAUSE to continue':'PAUSED — press P to continue');}
-  else if(!document.body.classList.contains('touch-device')){try{document.body.requestPointerLock()}catch(e){}}
+function togglePause(forceState){
+  if(!gameStarted || isDead) return;
+  isPaused=(typeof forceState==='boolean')?forceState:!isPaused;
+  var pause=document.getElementById('pause-screen');
+  if(pause) pause.style.display=isPaused?'flex':'none';
+  if(isPaused){
+    moveForward=moveBackward=moveLeft=moveRight=false; isSprinting=false; isCranking=false;
+    try{if(document.pointerLockElement)document.exitPointerLock();}catch(e){}
+  } else {
+    if(!document.body.classList.contains('touch-device')){try{document.body.requestPointerLock()}catch(e){}}
+  }
+}
+function openPauseSettings(){
+  settingsReturnToPause=true;
+  var pause=document.getElementById('pause-screen'); if(pause) pause.style.display='none';
+  document.getElementById('settings-screen').style.display='flex';
+  applySettings();
+}
+function returnToMainMenu(){
+  isPaused=false; gameStarted=false; settingsReturnToPause=false;
+  var pause=document.getElementById('pause-screen'); if(pause) pause.style.display='none';
+  var settingsScreen=document.getElementById('settings-screen'); if(settingsScreen) settingsScreen.style.display='none';
+  var title=document.getElementById('title-screen'); if(title) title.style.display='flex';
+  var ui=document.getElementById('ui-overlay'); if(ui) ui.style.display='none';
+  var cross=document.getElementById('crosshair'); if(cross) cross.style.display='none';
+  var term=document.getElementById('terminal-ui'); if(term) term.style.display='none';
+  document.body.classList.remove('game-active');
+  try{if(document.pointerLockElement)document.exitPointerLock();}catch(e){}
+  startMenuMusic();
 }
 function animate(){
   if(!renderer||!scene||!camera)return;
@@ -2492,6 +2858,7 @@ function animate(){
   var now=performance.now(),delta=Math.min((now-prevTime)/1000,0.05);prevTime=now;
   if(gameStarted&&!isDead&&!isPaused){
     updatePlayer(delta); updateDoors(); updateFuses(now); updateWindowShards(delta);
+    updateGhost(delta);
     if(typeof updateMonster==='function') updateMonster(delta);
     if(alarmLight) alarmLight.intensity=alarmActive?(1+Math.sin(now*.018)*.8):0;
   }
@@ -2509,3 +2876,4 @@ window.addEventListener('DOMContentLoaded',function(){
 </script>
 </body>
 </html>
+
