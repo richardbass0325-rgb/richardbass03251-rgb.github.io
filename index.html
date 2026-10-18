@@ -321,6 +321,49 @@ body.touch-device .controls-grid{grid-template-columns:1fr 1fr}
 
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<style id="blackwood-nightmare-upgrade">
+/* The alien ghost: less cute, more uncanny, with a huge face and extra eye/mouth detail. */
+#ghost-overlay{background:radial-gradient(ellipse at center,rgba(2,22,22,.12) 0%,rgba(0,0,0,.96) 76%)!important}
+#ghost-overlay.on{animation:alienScreenRupture .055s steps(2,end) infinite!important}
+#ghost-overlay .alien{width:min(72vh,96vw)!important;height:min(82vh,112vw)!important;opacity:1!important;filter:contrast(1.65) saturate(.55) drop-shadow(0 0 25px rgba(160,255,240,.35)) drop-shadow(0 0 90px rgba(0,0,0,1))!important}
+#ghost-overlay .alien .head{background:radial-gradient(ellipse at 48% 26%,#e0e7df 0%,#a3b4aa 24%,#52665f 54%,#101a18 82%,#020303 100%)!important;border-radius:48% 52% 43% 57% / 32% 35% 65% 68%!important;box-shadow:inset 0 0 70px #000,0 0 35px rgba(100,255,230,.25)!important}
+#ghost-overlay .alien .head:before{content:"";position:absolute;left:9%;right:9%;top:12%;height:34%;background:repeating-linear-gradient(112deg,transparent 0 17px,rgba(0,0,0,.8) 18px 20px,transparent 21px 33px),radial-gradient(ellipse at 50% 100%,rgba(0,0,0,.9),transparent 70%);clip-path:polygon(0 0,100% 0,85% 100%,64% 72%,50% 100%,31% 72%,12% 100%);opacity:.9}
+#ghost-overlay .alien .head:after{content:"";position:absolute;left:31%;top:67%;width:38%;height:23%;background:repeating-linear-gradient(180deg,#050807 0 7px,#d8dfd4 8px 11px,#111 12px 16px);clip-path:polygon(0 0,100% 0,83% 100%,64% 70%,50% 100%,34% 70%,16% 100%);box-shadow:0 0 20px #000;animation:alienJaw 0.11s steps(2,end) infinite alternate}
+#ghost-overlay .alien .eye{top:34%!important;width:34%!important;height:22%!important;background:radial-gradient(ellipse at 48% 45%,#030706 0 48%,#0b1715 70%,#728e83 100%)!important;border-radius:50% 50% 42% 42%!important;box-shadow:inset 0 0 24px #000,0 0 10px rgba(150,255,225,.3)!important;overflow:hidden}
+#ghost-overlay .alien .eye:after{content:"";position:absolute;left:47%;top:0;width:7%;height:100%;background:#d4fff0;box-shadow:0 0 14px 4px #6dffe0;opacity:.8}
+#ghost-overlay .alien .eye.l{left:5%!important;transform:rotate(29deg) scaleY(1.18)!important}
+#ghost-overlay .alien .eye.r{right:5%!important;transform:rotate(-29deg) scaleY(1.18)!important}
+#ghost-overlay .alien .nose{top:58%!important;width:16%!important;height:7%!important;left:42%!important;background:#030706!important;box-shadow:-18px 3px 0 -3px #101a17,18px 3px 0 -3px #101a17!important;clip-path:polygon(50% 0,100% 100%,62% 70%,50% 100%,34% 70%,0 100%)}
+#ghost-overlay .alien .mouth{top:74%!important;left:29%!important;width:42%!important;height:8%!important;background:#000!important;border-radius:4% 4% 45% 45%!important;box-shadow:0 0 24px #000,inset 0 0 14px #07100e!important;animation:alienMouthRipper .09s steps(2,end) infinite alternate!important}
+#ghost-overlay .alien:before,#ghost-overlay .alien:after{content:"";position:absolute;top:40%;width:23%;height:65%;z-index:-1;background:repeating-linear-gradient(170deg,#030605 0 9px,#26352e 10px 12px,#010202 13px 18px);filter:drop-shadow(0 0 10px #000);opacity:.95;clip-path:polygon(35% 0,70% 0,100% 45%,76% 60%,96% 100%,47% 78%,0 100%,20% 54%,0 30%);transform-origin:top center}
+#ghost-overlay .alien:before{left:-9%;transform:rotate(20deg);animation:alienTendrilL .18s steps(2,end) infinite alternate}
+#ghost-overlay .alien:after{right:-9%;transform:scaleX(-1) rotate(20deg);animation:alienTendrilR .14s steps(2,end) infinite alternate}
+#ghost-overlay .gtxt{bottom:5%!important;color:#e4fff6!important;font-size:clamp(18px,4vw,40px)!important;letter-spacing:.35em!important;text-shadow:0 0 4px #fff,0 0 22px #64ffe0,0 0 45px #000!important;animation:ghostWords 0.12s steps(2,end) infinite}
+@keyframes ghostLunge{0%{transform:scale(.08) translateY(55%) rotate(13deg);opacity:0;filter:blur(16px)}8%{opacity:1}18%{transform:scale(1.15) translateY(0) rotate(-4deg);filter:blur(0)}26%{transform:scale(.85) skewX(9deg)}38%{transform:scale(1.32) rotate(3deg)}52%{transform:scale(1.08) skewX(-10deg)}66%{transform:scale(1.75) rotate(-4deg)}82%{transform:scale(2.35) rotate(5deg);opacity:1}94%{transform:scale(3.3) rotate(-7deg);opacity:.8}100%{transform:scale(4.2) rotate(9deg);opacity:0;filter:blur(2px)}}
+@keyframes alienScreenRupture{0%{filter:contrast(1.5);transform:translate(0,0)}25%{filter:contrast(2.3) invert(.08);transform:translate(7px,-3px)}50%{filter:contrast(1.8);transform:translate(-6px,4px)}75%{filter:contrast(2.6) hue-rotate(18deg);transform:translate(4px,2px)}100%{filter:contrast(1.6);transform:translate(-2px,-4px)}}
+@keyframes alienJaw{from{transform:scaleY(.65) translateY(-2%)}to{transform:scaleY(1.35) translateY(7%)}}
+@keyframes alienMouthRipper{from{transform:scaleY(.7) scaleX(.9)}to{transform:scaleY(2.5) scaleX(1.12)}}
+@keyframes alienTendrilL{from{transform:rotate(12deg)}to{transform:rotate(-18deg) translateY(8px)}}
+@keyframes alienTendrilR{from{transform:scaleX(-1) rotate(9deg)}to{transform:scaleX(-1) rotate(-22deg) translateY(10px)}}
+@keyframes ghostWords{0%,100%{opacity:1;transform:translateX(0)}50%{opacity:.45;transform:translateX(5px) skewX(-8deg)}}
+/* Make the Warden's existing silhouette, posture and facial motion more disturbing; no red wall aura. */
+.title-silhouette{filter:drop-shadow(0 0 12px #000)!important;animation:wardenNightmareLurch 2.7s steps(2,end) infinite!important}
+@keyframes wardenNightmareLurch{0%,73%,100%{transform:translateY(0) scale(1) rotate(-1deg);filter:brightness(.38) contrast(1.5)}75%{transform:translateY(2vh) scale(1.13) rotate(2deg);filter:brightness(1.3) contrast(1.9)}77%{transform:translateY(-1vh) scale(.98) rotate(-3deg)}79%{transform:translateY(1vh) scale(1.2) rotate(1deg);filter:brightness(1.1) contrast(2)}82%{transform:translateY(0) scale(1.04)}}
+#jumpscare-overlay.scare-active{animation:nightmareShake .027s steps(2,end) infinite!important;filter:contrast(1.55) saturate(1.8)}
+#jumpscare-overlay.scare-active #jumpscare-face{animation:finalPredatorLunge 3.3s cubic-bezier(.02,.9,.06,1) both!important;background:radial-gradient(ellipse at 50% 45%,#c3a99b 0,#5b090f 28%,#180004 57%,#000 83%)!important}
+#jumpscare-overlay.scare-active .creature-head{animation:predatorHeadTwitch .075s steps(2,end) infinite alternate!important;filter:contrast(2.2) saturate(1.9) drop-shadow(0 0 65px #a00000)!important}
+#jumpscare-overlay.scare-active .creature-mouth{animation:predatorJaw 0.095s steps(2,end) infinite alternate!important}
+#jumpscare-overlay.scare-active .jumpscare-flash{animation:finalFlash 3.3s steps(1,end) both!important}
+#jumpscare-overlay.scare-active .jumpscare-static{opacity:1!important}
+#jumpscare-overlay.scare-active .jumpscare-caption{animation:captionGlitch .028s steps(2,end) infinite!important;text-shadow:0 0 6px #fff,0 0 35px #f00,0 0 70px #a00,4px 4px #000!important}
+@keyframes finalPredatorLunge{0%{transform:scale(.004) translateY(38%) rotate(12deg);filter:brightness(12) blur(26px)}4%{transform:scale(.08) translateY(22%) rotate(-9deg);filter:brightness(5) blur(12px)}9%{transform:scale(1.55) rotate(5deg);filter:brightness(2.8) blur(0)}13%{transform:scale(.72) rotate(-7deg)}18%{transform:scale(1.28) rotate(4deg)}24%{transform:scale(.94) rotate(-3deg)}31%{transform:scale(1.42) rotate(5deg)}39%{transform:scale(1.05) rotate(-4deg)}50%{transform:scale(1.72) rotate(3deg)}61%{transform:scale(2.1) rotate(-5deg)}73%{transform:scale(2.8) rotate(4deg)}86%{transform:scale(3.7) rotate(-6deg)}100%{transform:scale(5.2) rotate(8deg);filter:brightness(1.2) blur(0)}}
+@keyframes finalFlash{0%{opacity:1;background:#fff}2%{opacity:0}5%{opacity:1;background:#c8fff6}7%{opacity:0}11%{opacity:.95;background:#f00}13%{opacity:0}21%{opacity:.7;background:#fff}23%{opacity:0}36%{opacity:.85;background:#a00}38%{opacity:0}54%{opacity:.6;background:#fff}56%{opacity:0}100%{opacity:0}}
+@keyframes predatorHeadTwitch{0%{transform:translate(-50%,-50%) rotate(-4deg) scale(1.03);filter:contrast(1.8)}50%{transform:translate(-48%,-51%) rotate(3deg) scale(1.08);filter:contrast(2.5)}100%{transform:translate(-52%,-49%) rotate(-2deg) scale(1.02);filter:contrast(2)}}
+@keyframes predatorJaw{from{transform:rotate(1deg) scaleY(.82)}to{transform:rotate(-2deg) scaleY(1.48)}}
+@media(prefers-reduced-motion:reduce){#ghost-overlay.on,#ghost-overlay.on *{animation-duration:.3s!important}.jumpscare-caption{animation-duration:.12s!important}}
+</style>
+
 </head>
 <body>
 <div id="game-container">
@@ -384,7 +427,7 @@ body.touch-device .controls-grid{grid-template-columns:1fr 1fr}
           <div><span>[W A S D]</span> MOVE</div>
           <div><span>[MOUSE]</span> LOOK · [P] PAUSE</div>
           <div><span>[SHIFT]</span> SPRINT — MAKES NOISE</div>
-          <div><span>[C]</span> CROUCH — MOVE QUIETLY</div>
+          <div><span>[C]</span> CROUCH — SILENT STEPS, HARD TO DETECT (STAND STILL TO HIDE)</div>
           <div><span>[SPACE]</span> JUMP / VAULT</div>
           <div><span>[E]</span> INTERACT</div>
           <div><span>[HOLD F]</span> CRANK FLASHLIGHT</div>
@@ -545,7 +588,11 @@ var settings = { sens: 1, vol: 1, fov: 75, bright: 1.25, invertY: false };
 var settingsReturnToPause = false;
 var quality = 2, userQuality = false, fpsAcc = 0, fpsFrames = 0, warmFrames = 0;
 var master, isPaused = false, lastGrowl = 0;
-function OUT(){ return master || audioCtx.destination; }
+function OUT(){
+  if (!audioCtx) return null;
+  if (!master || master.context !== audioCtx) { master = audioCtx.createGain(); master.gain.value = (settings && typeof settings.vol === 'number') ? settings.vol : 1; master.connect(audioCtx.destination); }
+  return master;
+}
 var turnL = false, turnR = false, lookU = false, lookD = false;
 var codeDigits = ["?", "?", "?", "?", "?"], secretCode = '41927', stepTimer = 0, lastCrank = 0;
 
@@ -598,7 +645,42 @@ function initAudio(){
 var audioPrimed = false;
 var glassShatterBuffer = null;
 
+function ensureAudioRunning(){
+  try {
+    // Recover if the browser suspended or closed the old audio context.
+    if (!audioCtx || audioCtx.state === 'closed') {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      master = null; audioPrimed = false; glassShatterBuffer = null;
+    }
+    if (!master || master.context !== audioCtx) {
+      master = audioCtx.createGain();
+      master.gain.setValueAtTime(Math.max(0, Math.min(1, Number(settings.vol))), audioCtx.currentTime);
+      master.connect(audioCtx.destination);
+    } else {
+      try { master.disconnect(); } catch(e) {}
+      master.connect(audioCtx.destination);
+      master.gain.setTargetAtTime(Math.max(0, Math.min(1, Number(settings.vol))), audioCtx.currentTime, 0.03);
+    }
+    if (audioCtx.state !== 'running') {
+      var resumeResult = audioCtx.resume();
+      if (resumeResult && resumeResult.catch) resumeResult.catch(function(err){ console.warn('Audio resume blocked:', err); });
+    }
+    // Prime the output path from the user gesture, including browsers that need a fresh source.
+    try {
+      var osc = audioCtx.createOscillator(), g = audioCtx.createGain();
+      g.gain.setValueAtTime(0.00001, audioCtx.currentTime);
+      osc.connect(g); g.connect(master); osc.start(); osc.stop(audioCtx.currentTime + 0.015);
+    } catch(e) {}
+  } catch(e) { console.warn('Audio could not be unlocked:', e); }
+}
+// Unlock audio directly from user gestures, and resume it when returning to the tab.
+document.addEventListener('pointerdown', ensureAudioRunning, {passive:true});
+document.addEventListener('keydown', function(){ if(gameStarted) ensureAudioRunning(); }, {passive:true});
+document.addEventListener('touchstart', ensureAudioRunning, {passive:true});
+document.addEventListener('visibilitychange', function(){ if(!document.hidden) ensureAudioRunning(); });
+
 function playGlassShatterSound(){
+  if (!audioCtx || audioCtx.state === 'suspended') ensureAudioRunning();
   if (!audioCtx || isDead) return;
   if (audioCtx.state === 'suspended') { try { var resumePromise=audioCtx.resume(); if(resumePromise&&resumePromise.catch)resumePromise.catch(function(){}); } catch(e){} }
   try {
@@ -667,6 +749,7 @@ function startMenuMusic(){
   } catch(e){ console.warn('Menu music unavailable:',e); }
 }
 function enableMenuMusic(){
+  ensureAudioRunning();
   startMenuMusic();
   var b=document.getElementById('menu-music-btn');
   if(b){b.textContent='♫ HORROR MUSIC ON';b.setAttribute('aria-pressed','true');}
@@ -684,6 +767,7 @@ function stopMenuMusic(){
   }catch(e){}
 }
 function playSound(freq, type, duration, volume){
+  if (!audioCtx || audioCtx.state === 'suspended') ensureAudioRunning();
   volume = volume === undefined ? 0.1 : volume;
   if (!audioCtx || isDead) return;
   if (audioCtx.state === 'suspended') { var r=audioCtx.resume(); if(r&&r.catch)r.catch(function(){}); }
@@ -701,6 +785,7 @@ function playSound(freq, type, duration, volume){
 function playDoorCreak(){ playSound(110, 'sawtooth', 0.5, 0.1); setTimeout(function(){ playSound(80, 'sine', 0.4, 0.06); }, 120); }
 function playThudSound(){ playSound(55, 'sine', 0.3, 0.3); }
 function noiseBurst(dur, freq, vol, type){
+  if (!audioCtx || audioCtx.state === 'suspended') ensureAudioRunning();
   type = type || 'lowpass';
   if (!audioCtx || isDead) return;
   if (audioCtx.state === 'suspended') { var r=audioCtx.resume(); if(r&&r.catch)r.catch(function(){}); }
@@ -727,6 +812,7 @@ function playCrankSound(){
   }
 }
 function playWhisperSound(){
+  if (!audioCtx || audioCtx.state === 'suspended') ensureAudioRunning();
   if (!audioCtx || isDead) return;
   try {
     var now = audioCtx.currentTime, n = Math.floor(audioCtx.sampleRate * 1.3);
@@ -1218,7 +1304,7 @@ function createDoor(x, z, rotationY, floorBase){
 
   var edgeMat = new THREE.MeshStandardMaterial({ color: 0x1a1d21, roughness: 0.8, metalness: 0.4 });
   var edge = new THREE.Mesh(new THREE.BoxGeometry(0.06, 2.7, 0.14), edgeMat);
-  edge.position.set(2.08, 1.35, 0);
+  edge.position.set(1.01, 0, 0);
   leaf.add(edge);
 
   var winFrameMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0e, roughness: 0.4, metalness: 0.85 });
@@ -1249,12 +1335,6 @@ function createDoor(x, z, rotationY, floorBase){
   handleBar.rotation.z = Math.PI / 2;
   leaf.add(handleBar);
 
-  for (var h = 0; h < 3; h++) {
-    var hg = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.18, 0.18), handleMat);
-    hg.position.set(0.02, 0.5 + h * 0.9, 0.02);
-    leaf.add(hg);
-  }
-
   pivot.add(leaf);
   g.add(pivot);
   scene.add(g);
@@ -1281,7 +1361,7 @@ function pushCircleOutOfBoxes(p, r, isMonster){
   var onUpperFloor = referenceY > 4.5 && hereFloor >= 7.1;
   colliders.forEach(function(c){
     if (c.door && c.door.isOpen) return;
-    if (!isMonster && c.windowRef && c.windowRef.broken) return;
+    // Windows stay solid even once the glass is broken: the only way across is the vault (which moves you directly), never walking or jumping.
     // Someone high on the stairs is above the ground-floor walls; those must not squeeze them.
     if (!isMonster && !c.stairRail && (c.floorY || 0) < 3.6 && referenceY > 5.3) return;
     if (isMonster && c.stairRail) return;   // the flight's side rails are for the player; the Warden walks the centre line
@@ -1763,16 +1843,24 @@ function setupControls(){
       } catch (e) {}
     }
   });
+  var lastMouseX = null, lastMouseY = null;
   document.addEventListener('mousemove', function(e){
-    if (!document.body.classList.contains('touch-device') && !(renderer && renderer.xr && renderer.xr.isPresenting) && !isDead && gameStarted && !isTerminalOpen && !isPaused) {
-      camera.rotation.y -= e.movementX * 0.0022 * settings.sens;
-      camera.rotation.x -= e.movementY * 0.0022 * settings.sens * (settings.invertY ? -1 : 1);
-      camera.rotation.x = Math.max(-Math.PI / 2.3, Math.min(Math.PI / 2.3, camera.rotation.x));
-    }
+    var active = !document.body.classList.contains('touch-device') && !(renderer && renderer.xr && renderer.xr.isPresenting) && !isDead && gameStarted && !isTerminalOpen && !isNoteOpen && !isPaused;
+    if (!active) { lastMouseX = e.clientX; lastMouseY = e.clientY; return; }
+    var locked = document.pointerLockElement === document.body || (renderer && renderer.domElement && document.pointerLockElement === renderer.domElement);
+    var dx = locked ? (e.movementX || 0) : (lastMouseX === null ? 0 : e.clientX - lastMouseX);
+    var dy = locked ? (e.movementY || 0) : (lastMouseY === null ? 0 : e.clientY - lastMouseY);
+    lastMouseX = e.clientX; lastMouseY = e.clientY;
+    // If pointer lock is unavailable, moving the mouse still turns the camera.
+    if (!locked && e.buttons !== 0) return;
+    camera.rotation.order = 'YXZ';
+    camera.rotation.y -= dx * 0.0022 * settings.sens;
+    camera.rotation.x -= dy * 0.0022 * settings.sens * (settings.invertY ? -1 : 1);
+    camera.rotation.x = Math.max(-Math.PI / 2.3, Math.min(Math.PI / 2.3, camera.rotation.x));
   });
 }
 function updateStanceUI(){
-  var s = document.getElementById('stance-indicator');
+  var s = document.getElementById('stance-indicator'); s.style.color=''; stealthHudText='';
   if (isSprinting) s.innerText = "STANCE: SPRINTING (NOISY)";
   else if (isCrouching) s.innerText = "STANCE: CROUCHING (STEALTH)";
   else s.innerText = "STANCE: WALKING";
@@ -1814,9 +1902,15 @@ function vaultThroughWindow(w){
   var firstBreak=breakWindowGlass(w);
   var rel=camera.position.clone().sub(w.position);rel.y=0;
   var relN=rel.dot(w.normal);var side=relN>=0?-1:1;
-  isVaulting=true;vaultProgress=0;vaultStartPos=camera.position.clone();
-  vaultEndPos=camera.position.clone().addScaledVector(w.normal,side*2.4-relN);
-  vaultEndPos.y=(vrSessionActive()?0:(isCrouching?CROUCH_HEIGHT:STAND_HEIGHT)) + getWalkableFloorHeight(vaultEndPos.x,vaultEndPos.z,camera.position.y);
+  // vaultEndPos starts out undefined (null after a retry), so it must be created here before anything writes into it.
+  vaultStartPos=camera.position.clone();
+  vaultEndPos=new THREE.Vector3();
+  isVaulting=true;vaultProgress=0;
+  // Snap to the centreline of the actual window opening before crossing. The old
+  // camera-relative endpoint could leave the player beside the opening and inside
+  // the perpendicular end wall on the upstairs landing.
+  vaultEndPos.copy(w.position).addScaledVector(w.normal,side*2.15);
+  vaultEndPos.y=(vrSessionActive()?0:(isCrouching?CROUCH_HEIGHT:STAND_HEIGHT)) + (w.floorY || 0);
   playVaultSound();
   if(firstBreak){
     // The first shatter is a loud event: the Warden is drawn to the broken window.
@@ -2186,12 +2280,13 @@ function updatePlayer(delta){
   document.getElementById('battery-level').style.width = battery + '%';
 
   var isMoving = moveForward || moveBackward || moveLeft || moveRight;
+  playerMovingNow = isMoving;
   if (isSprinting && isMoving && stamina > 0) {
     stamina = Math.max(0, stamina - 0.45);
     if (stamina <= 0) { isSprinting = false; updateStanceUI(); }
     alertMonsterToNoise(camera.position, 22);
   } else {
-    stamina = Math.min(100, stamina + 0.25);
+    stamina = Math.min(100, stamina + (isCrouching ? 0.55 : 0.25));   // crouching = catching your breath
   }
   document.getElementById('stamina-level').style.width = stamina + '%';
 
@@ -2229,8 +2324,8 @@ function updatePlayer(delta){
           // Heavy hollow wooden tread plus a short iron rattle; triggered on each stair step.
           playSound(isSprinting?105:82,'triangle',.16,isSprinting?.24:.18);
           playSound(420,'square',.045,.035);
-          alertMonsterToNoise(camera.position,isSprinting?19:11);
-        } else playFootstep(isSprinting, isCrouching);
+          alertMonsterToNoise(camera.position,isSprinting?19:isCrouching?3:11);
+        } else { playFootstep(isSprinting, isCrouching); alertMonsterToNoise(camera.position,isSprinting?19:isCrouching?0:8); }
       }
     } else stepTimer = 0;
   }
@@ -2276,7 +2371,7 @@ function initGhost(){
     st.textContent =
       '#ghost-overlay{position:absolute;inset:0;z-index:99;display:none;align-items:center;justify-content:center;pointer-events:none;overflow:hidden;background:radial-gradient(ellipse at center,rgba(120,255,230,.22),rgba(0,10,12,.9) 75%)}' +
       '#ghost-overlay.on{display:flex;animation:ghostFlicker .09s steps(2,end) infinite}' +
-      '#ghost-overlay.on .alien{animation:ghostLunge 1.5s cubic-bezier(.05,.8,.1,1) both}' +
+      '#ghost-overlay.on .alien{animation:ghostLunge 2.25s cubic-bezier(.02,.92,.08,1) both}' +
       '.alien{position:relative;width:min(46vh,70vw);height:min(62vh,92vw);filter:drop-shadow(0 0 40px rgba(110,255,220,.8)) blur(.4px);opacity:.88}' +
       '.alien .head{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 38%,#b8cfc6 0%,#7f9a91 55%,#37514a 100%);border-radius:50% 50% 46% 46% / 38% 38% 62% 62%;clip-path:ellipse(50% 50% at 50% 50%)}' +
       '.alien .eye{position:absolute;top:36%;width:30%;height:19%;background:radial-gradient(ellipse at 40% 35%,#1b2b2a 0%,#000 55%);border-radius:50%;box-shadow:inset 0 0 18px #000,0 0 22px rgba(130,255,230,.55)}' +
@@ -2319,7 +2414,7 @@ function triggerGhostScare(){
   // The shriek carries: the Warden is sent straight to you and keeps tracking you for a while.
   ghostAlertTimer = 25;
   showTransientMsg('SOMETHING SCREAMED... THE WARDEN IS COMING FOR YOU. MOVE!');
-  setTimeout(function(){ if (ghostEl) ghostEl.classList.remove('on'); ghostShowing = false; }, 1500);
+  setTimeout(function(){ if (ghostEl) ghostEl.classList.remove('on'); ghostShowing = false; }, 2250);
 }
 function updateGhost(delta){
   if (ghostAlertTimer > 0) ghostAlertTimer = Math.max(0, ghostAlertTimer - delta);
@@ -2491,6 +2586,19 @@ function monsterSteerPoint(level,tx,tz,delta){
   if(monsterPathIdx===monsterPath.length-1 && Math.hypot(wp.x-ex,wp.z-ez)<0.4) return null;   // as close as he can get (e.g. you're behind a window)
   return {x:wp.x,z:wp.z};
 }
+var playerMovingNow = false, monsterAwareTimer = 0, stealthHudText = '';
+// How far away the Warden can sense you. Crouching is real stealth: still + crouched makes you very hard to find.
+function playerDetectRange(){
+  if (isSprinting) return 60;
+  if (isCrouching) return playerMovingNow ? 22 : 11;
+  return 48;
+}
+function updateStealthHUD(dist, range){
+  var el = document.getElementById('stance-indicator');
+  if (!el || !isCrouching || isSprinting) { stealthHudText = ''; return; }
+  var t = dist >= range && monsterAwareTimer <= 0 ? 'STANCE: CROUCHING — HIDDEN' : 'STANCE: CROUCHING — QUIET (HE IS CLOSE)';
+  if (t !== stealthHudText) { el.innerText = t; el.style.color = dist >= range && monsterAwareTimer <= 0 ? '#6f6' : '#fa0'; stealthHudText = t; }
+}
 function updateMonster(delta){
   if(!entityMesh || !camera || isDead) return;
   if(!navGrids) buildNavGrids();
@@ -2502,14 +2610,17 @@ function updateMonster(delta){
   entityPosition.y=monsterFloor;
   var m=entityPosition.clone();
   var dist=m.distanceTo(p);
+  var detectRange=playerDetectRange();
+  if(dist<detectRange) monsterAwareTimer=4; else monsterAwareTimer=Math.max(0,monsterAwareTimer-delta);   // he keeps tracking you briefly after losing you
+  updateStealthHUD(dist,detectRange);
   if(ghostAlertTimer>0){
     monsterState='hunt'; monsterTargetPos.copy(p);
   } else if(glassNoiseTimer>0){
     glassNoiseTimer=Math.max(0,glassNoiseTimer-delta);
     monsterState='investigate'; monsterTargetPos.copy(glassNoisePos);
     if(entityPosition.distanceTo(glassNoisePos)<1.7) glassNoiseTimer=0;
-  } else if(dist<48){
-    monsterState = dist<13 ? 'hunt' : 'stalk';
+  } else if(dist<detectRange || (monsterAwareTimer>0 && dist<60)){
+    monsterState = dist<Math.min(13,detectRange) ? 'hunt' : 'stalk';
     monsterTargetPos.copy(p);
   } else if(monsterState==='investigate' && entityPosition.distanceTo(monsterTargetPos)<1.2){
     monsterState='patrol'; monsterPatrolSet=false;
@@ -2578,11 +2689,11 @@ function updateMonster(delta){
     monsterStuckPos.copy(entityPosition); monsterStuckTimer=0;
   }
   entityMesh.position.copy(entityPosition);
-  var horrorScale=dist<5?0.92:dist<14?0.86:0.8; // keeps his horns well under the 3.6 ceiling
+  var horrorScale=dist<5?1.02:dist<14?0.90:0.83; // imposing close-up silhouette; no wall glow
   entityMesh.scale.setScalar(horrorScale);
   if(entityParts.torso){ entityParts.torso.rotation.z=Math.sin(monsterAnimTime*5.2)*0.07; entityParts.torso.rotation.x=Math.sin(monsterAnimTime*3.1)*0.04; }
-  if(entityParts.neck){ entityParts.neck.rotation.x=dist<9?Math.sin(monsterAnimTime*13)*0.19:Math.sin(monsterAnimTime*2)*0.04; entityParts.neck.rotation.z=dist<5?Math.sin(monsterAnimTime*7)*0.2:Math.sin(monsterAnimTime*1.4)*0.035; }
-  if(entityParts.jaw){ entityParts.jaw.rotation.x=dist<8?0.18+Math.abs(Math.sin(monsterAnimTime*11))*0.48:Math.abs(Math.sin(monsterAnimTime*2))*0.06; }
+  if(entityParts.neck){ entityParts.neck.rotation.x=dist<9?Math.sin(monsterAnimTime*17)*0.27:Math.sin(monsterAnimTime*2)*0.04; entityParts.neck.rotation.z=dist<5?Math.sin(monsterAnimTime*10)*0.28:Math.sin(monsterAnimTime*1.4)*0.055; }
+  if(entityParts.jaw){ entityParts.jaw.rotation.x=dist<8?0.25+Math.abs(Math.sin(monsterAnimTime*15))*0.62:Math.abs(Math.sin(monsterAnimTime*2))*0.06; }
   if(entityParts.armL) entityParts.armL.rotation.x=Math.sin(monsterAnimTime*7)*0.18;
   if(entityParts.armR) entityParts.armR.rotation.x=-Math.sin(monsterAnimTime*7)*0.18;
   if(entityParts.legL) entityParts.legL.rotation.x=Math.sin(monsterAnimTime*8)*0.25*(monsterMoving?1:0.15);
@@ -2618,7 +2729,7 @@ function triggerJumpscare(){
     g.querySelector('.btn').innerText='TRY AGAIN';
     g.querySelector('.btn').setAttribute('onclick','retryGame()');
     g.style.display='flex';
-  },2750);
+  },3300);
 }
 
 /* Adaptive mobile controls: touch-first devices get a joystick, drag-look and action buttons. */
@@ -2755,6 +2866,9 @@ function toggleGameFullscreen(){
   }catch(e){showTransientMsg('Use your browser menu to enter full screen.');}
 }
 function startGame(){
+  ensureAudioRunning();
+  // A quiet confirmation tone verifies the audio output on the Start button gesture.
+  try { var ac=audioCtx, o=ac.createOscillator(), g=ac.createGain(); o.type='sine'; o.frequency.value=660; g.gain.setValueAtTime(0.0001,ac.currentTime); g.gain.linearRampToValueAtTime(0.07*Math.max(0,Math.min(1,settings.vol)),ac.currentTime+0.025); g.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+0.18); o.connect(g); g.connect(OUT()); o.start(); o.stop(ac.currentTime+0.19); } catch(e) {}
   var title = document.getElementById('title-screen');
   if (!scene) {
     try { initAudio(); initScene(); } catch(err) {
@@ -2804,7 +2918,7 @@ function applySettings(){
   get('v-bright').textContent=settings.bright.toFixed(2);
   if(camera) camera.fov=settings.fov,camera.updateProjectionMatrix();
   if(renderer) renderer.toneMappingExposure=settings.bright;
-  if(master) master.gain.value=settings.vol;
+  if(master) { try { master.gain.setTargetAtTime(Math.max(0,Math.min(1,settings.vol)), audioCtx.currentTime, 0.03); } catch(e) { master.gain.value=settings.vol; } }
 }
 function setQuality(q){
   quality=q;
